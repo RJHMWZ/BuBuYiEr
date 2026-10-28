@@ -1,0 +1,2362 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1087f2a1d751c7f42b8877b96ebac6aa, type: 3}
+  m_Name: Level_82
+  m_EditorClassIdentifier: Assembly-CSharp::ClawbearGames.LevelData
+  levelNumber: 82
+  imageData:
+    sourceImage: {fileID: 2800000, guid: 813b8d95a8216104aa10a5f32d7473b4, type: 3}
+    normalizeStep: 5
+    mergeThreshold: 70
+    imageWidth: 32
+    imageHeight: 32
+    pixelColors:
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281545676
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278190284
+    - serializedVersion: 2
+      rgba: 4278190284
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278190080
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278190284
+    - serializedVersion: 2
+      rgba: 4278190284
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4284901017
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4284901017
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278229350
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571635
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278229350
+    - serializedVersion: 2
+      rgba: 4278229350
+    - serializedVersion: 2
+      rgba: 4278229350
+    - serializedVersion: 2
+      rgba: 4278229350
+    - serializedVersion: 2
+      rgba: 4278229350
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278190080
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281584844
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278190080
+    - serializedVersion: 2
+      rgba: 4278190080
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281584844
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278229350
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278216396
+    colorPalette:
+    - serializedVersion: 2
+      rgba: 4278216396
+    - serializedVersion: 2
+      rgba: 4278229503
+    - serializedVersion: 2
+      rgba: 4281558630
+    - serializedVersion: 2
+      rgba: 4278203187
+    - serializedVersion: 2
+      rgba: 4281545676
+    - serializedVersion: 2
+      rgba: 4281558783
+    - serializedVersion: 2
+      rgba: 4281571737
+    - serializedVersion: 2
+      rgba: 4278190284
+    - serializedVersion: 2
+      rgba: 4278190080
+    - serializedVersion: 2
+      rgba: 4284901017
+    - serializedVersion: 2
+      rgba: 4278229350
+    - serializedVersion: 2
+      rgba: 4281571635
+    - serializedVersion: 2
+      rgba: 4281584844
+    colorCounts: f10100001b0000001001000066000000010000001700000052000000040000000400000002000000070000000100000002000000
+  gridData:
+    width: 5
+    height: 3
+    tiles: 010100010101010101010101000101
+  pots:
+  - potID: 1
+    color:
+      serializedVersion: 2
+      rgba: 4278216396
+    tilePosition: {x: 4, y: 2}
+    state: 0
+    decayTime: 5
+    requiredAmount: 497
+  - potID: 2
+    color:
+      serializedVersion: 2
+      rgba: 4278229503
+    tilePosition: {x: 4, y: 2}
+    state: 0
+    decayTime: 5
+    requiredAmount: 14
+  - potID: 3
+    color:
+      serializedVersion: 2
+      rgba: 4278229503
+    tilePosition: {x: 0, y: 2}
+    state: 0
+    decayTime: 5
+    requiredAmount: 13
+  - potID: 4
+    color:
+      serializedVersion: 2
+      rgba: 4281558630
+    tilePosition: {x: 4, y: 2}
+    state: 3
+    decayTime: 58.673725
+    requiredAmount: 272
+  - potID: 5
+    color:
+      serializedVersion: 2
+      rgba: 4278203187
+    tilePosition: {x: 4, y: 2}
+    state: 0
+    decayTime: 5
+    requiredAmount: 102
+  - potID: 6
+    color:
+      serializedVersion: 2
+      rgba: 4281545676
+    tilePosition: {x: 4, y: 2}
+    state: 0
+    decayTime: 5
+    requiredAmount: 1
+  - potID: 7
+    color:
+      serializedVersion: 2
+      rgba: 4281558783
+    tilePosition: {x: 4, y: 2}
+    state: 0
+    decayTime: 5
+    requiredAmount: 12
+  - potID: 8
+    color:
+      serializedVersion: 2
+      rgba: 4281558783
+    tilePosition: {x: 0, y: 2}
+    state: 0
+    decayTime: 5
+    requiredAmount: 11
+  - potID: 9
+    color:
+      serializedVersion: 2
+      rgba: 4281571737
+    tilePosition: {x: 4, y: 2}
+    state: 0
+    decayTime: 5
+    requiredAmount: 41
+  - potID: 10
+    color:
+      serializedVersion: 2
+      rgba: 4281571737
+    tilePosition: {x: 0, y: 2}
+    state: 0
+    decayTime: 5
+    requiredAmount: 41
+  - potID: 11
+    color:
+      serializedVersion: 2
+      rgba: 4278190284
+    tilePosition: {x: 4, y: 2}
+    state: 0
+    decayTime: 5
+    requiredAmount: 4
+  - potID: 12
+    color:
+      serializedVersion: 2
+      rgba: 4278190080
+    tilePosition: {x: 4, y: 2}
+    state: 0
+    decayTime: 5
+    requiredAmount: 2
+  - potID: 13
+    color:
+      serializedVersion: 2
+      rgba: 4278190080
+    tilePosition: {x: 0, y: 2}
+    state: 0
+    decayTime: 5
+    requiredAmount: 1
+  - potID: 14
+    color:
+      serializedVersion: 2
+      rgba: 4278190080
+    tilePosition: {x: 3, y: 1}
+    state: 0
+    decayTime: 5
+    requiredAmount: 1
+  - potID: 15
+    color:
+      serializedVersion: 2
+      rgba: 4284901017
+    tilePosition: {x: 4, y: 2}
+    state: 0
+    decayTime: 5
+    requiredAmount: 2
+  - potID: 16
+    color:
+      serializedVersion: 2
+      rgba: 4278229350
+    tilePosition: {x: 4, y: 2}
+    state: 0
+    decayTime: 5
+    requiredAmount: 3
+  - potID: 17
+    color:
+      serializedVersion: 2
+      rgba: 4278229350
+    tilePosition: {x: 0, y: 2}
+    state: 3
+    decayTime: 62.449482
+    requiredAmount: 2
+  - potID: 18
+    color:
+      serializedVersion: 2
+      rgba: 4278229350
+    tilePosition: {x: 3, y: 1}
+    state: 0
+    decayTime: 5
+    requiredAmount: 2
+  - potID: 19
+    color:
+      serializedVersion: 2
+      rgba: 4281571635
+    tilePosition: {x: 4, y: 2}
+    state: 0
+    decayTime: 5
+    requiredAmount: 1
+  - potID: 20
+    color:
+      serializedVersion: 2
+      rgba: 4281584844
+    tilePosition: {x: 4, y: 2}
+    state: 0
+    decayTime: 5
+    requiredAmount: 2
+  potColorConfigs:
+  - color:
+      serializedVersion: 2
+      rgba: 4278216396
+    minPots: 1
+    maxPots: 3
+  - color:
+      serializedVersion: 2
+      rgba: 4278229503
+    minPots: 1
+    maxPots: 3
+  - color:
+      serializedVersion: 2
+      rgba: 4281558630
+    minPots: 1
+    maxPots: 3
+  - color:
+      serializedVersion: 2
+      rgba: 4278203187
+    minPots: 1
+    maxPots: 3
+  - color:
+      serializedVersion: 2
+      rgba: 4281545676
+    minPots: 1
+    maxPots: 3
+  - color:
+      serializedVersion: 2
+      rgba: 4281558783
+    minPots: 1
+    maxPots: 3
+  - color:
+      serializedVersion: 2
+      rgba: 4281571737
+    minPots: 1
+    maxPots: 3
+  - color:
+      serializedVersion: 2
+      rgba: 4278190284
+    minPots: 1
+    maxPots: 3
+  - color:
+      serializedVersion: 2
+      rgba: 4278190080
+    minPots: 1
+    maxPots: 3
+  - color:
+      serializedVersion: 2
+      rgba: 4284901017
+    minPots: 1
+    maxPots: 3
+  - color:
+      serializedVersion: 2
+      rgba: 4278229350
+    minPots: 1
+    maxPots: 3
+  - color:
+      serializedVersion: 2
+      rgba: 4281571635
+    minPots: 1
+    maxPots: 3
+  - color:
+      serializedVersion: 2
+      rgba: 4281584844
+    minPots: 1
+    maxPots: 3
+  potDistributionMethod: 0
+  stateProbability:
+    noneWeight: 100
+    frozenWeight: 10
+    lockedWeight: 10
+    decayWeight: 10
+    minDecayTime: 50
+    maxDecayTime: 70
+  powerUps:
+  - powerUpType: 0
+    cost: 15
+    unlockLevel: 1
+  - powerUpType: 1
+    cost: 20
+    unlockLevel: 15
+  - powerUpType: 2
+    cost: 50
+    unlockLevel: 30
+  - powerUpType: 3
+    cost: 75
+    unlockLevel: 45
+  - powerUpType: 4
+    cost: 100
+    unlockLevel: 60
+  minCoinReward: 7
+  maxCoinReward: 20
+  totalLevelTime: 309
+  oneStarPercent: 31
+  twoStarPercent: 48
+  threeStarPercent: 74
+  backgroundTopColor: {r: 0.68, g: 0.58, b: 0.1, a: 1}
+  backgroundBottomColor: {r: 0.2, g: 0.28, b: 0.75, a: 1}
+  conveyorSlot: 2
