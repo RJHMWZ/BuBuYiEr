@@ -28,6 +28,15 @@ namespace ClawbearGames
             get { return PlayerDataHandler.GetTotalCoin(); }
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        public void DebugSetTotalCoins(int amount)
+        {
+            // A delayed reward animation must not overwrite a debug edit/restore later.
+            StopAllCoroutines();
+            TotalCoins = amount;
+        }
+#endif
+
 
         /// <summary>
         /// Set the CollectedCoins by the given amount.

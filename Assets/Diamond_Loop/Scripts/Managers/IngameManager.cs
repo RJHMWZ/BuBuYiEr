@@ -73,6 +73,22 @@ namespace ClawbearGames
         private MaterialPropertyBlock propertyBlock = null;
         private bool stopControl = false;
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        public LevelData DebugLevelData => levelData;
+
+        // Use the real result flow, but cancel startup/timer callbacks first.
+        public void DebugFinishLevel(bool won, int stars)
+        {
+            CancelInvoke();
+            StopAllCoroutines();
+            stopControl = true;
+            selectedPot = null;
+            CurrentStar = Mathf.Clamp(stars, 1, 3);
+            if (won) CompletedLevel();
+            else GameOver();
+        }
+#endif
+
 
         private void Awake()
         {
@@ -109,7 +125,15 @@ namespace ClawbearGames
             confettiEffects[0].transform.parent.gameObject.SetActive(false);
 
             //Load level parameters
-            if (testLevelData != null) 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (GameDebugService.TryGetLevelOverride(out LevelData debugLevel))
+            {
+                levelData = debugLevel;
+                CurrentLevel = GameDebugService.GetLevelNumber(debugLevel);
+            }
+            else
+#endif
+            if (testLevelData != null)
             {
                 int level = 1;
                 levelData = testLevelData;
@@ -133,6 +157,14 @@ namespace ClawbearGames
 
         private void Update()
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (GameDebugService.IsBlockingInput)
+            {
+                InputManager.Update();
+                selectedPot = null;
+                return;
+            }
+#endif
             if (stopControl) return;
 
             InputManager.Update();
@@ -328,7 +360,11 @@ namespace ClawbearGames
             }
 
 
-            if (testLevelData == null)
+            if (testLevelData == null
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                && !GameDebugService.IsPreviewLevel
+#endif
+                )
             {
                 //Update and report level to leaderboard
                 PlayerDataHandler.UpdateStar(CurrentLevel, CurrentStar);
@@ -444,6 +480,9 @@ namespace ClawbearGames
         /// </summary>
         public void OnPotCompleted()
         {
+            // Late animation callbacks must not settle a level twice.
+            if (IngameState != IngameState.Ingame_Playing) return;
+
             bool allCompleted = true;
             foreach(CellController cell in gridManager.AllCells())
             {

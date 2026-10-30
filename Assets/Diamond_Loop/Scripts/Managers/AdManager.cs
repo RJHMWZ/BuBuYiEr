@@ -102,6 +102,9 @@ namespace ClawbearGames
         /// <param name="ingameState"></param>
         private void IngameManager_IngameStateChanged(IngameState ingameState)
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (GameDebugService.IsPreviewLevel) return;
+#endif
             for (int i = 0; i < listIngameStateAmount.Count; i++)
             {
                 if (listInterstitialAdConfiguration[i].IngameStateWhenShowingAd == ingameState)

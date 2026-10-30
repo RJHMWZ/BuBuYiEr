@@ -70,7 +70,7 @@ namespace ClawbearGames
 
 
             //Update texts and others
-            currentLevelText.text = "Level: " + PlayerDataHandler.GetCurrentLevel().ToString();
+            currentLevelText.text = "Level: " + IngameManager.Instance.CurrentLevel.ToString();
             totalCoinsText.text = ServicesManager.Instance.CoinManager.TotalCoins.ToString();
             bool levelcompleted = IngameManager.Instance.IngameState == IngameState.Ingame_CompleteLevel;
             replayLevelButtonTrans.gameObject.SetActive(!levelcompleted);
@@ -104,6 +104,16 @@ namespace ClawbearGames
 
         public void OnClickPlayButton()
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (GameDebugService.IsPreviewLevel)
+            {
+                if (IngameManager.Instance.IngameState == IngameState.Ingame_CompleteLevel)
+                    GameDebugService.LoadAdjacentLevel(1);
+                else
+                    GameDebugService.RetryLevel();
+                return;
+            }
+#endif
             ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Button);
             LoadScene("Ingame", 0.25f);
         }

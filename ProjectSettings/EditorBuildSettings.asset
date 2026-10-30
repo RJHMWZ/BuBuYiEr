@@ -6,16 +6,16 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Box_Blast_Puzzle/Scenes/Home.unity
+    path: Assets/Diamond_Loop/Scenes/Home.unity
     guid: 672c32077df9f5f4284a9fcc3399304a
   - enabled: 1
-    path: Assets/Box_Blast_Puzzle/Scenes/Loading.unity
+    path: Assets/Diamond_Loop/Scenes/Loading.unity
     guid: 65c2268ce55fe2a4cb89b22acfc8fd62
   - enabled: 1
-    path: Assets/Box_Blast_Puzzle/Scenes/Level.unity
+    path: Assets/Diamond_Loop/Scenes/Level.unity
     guid: abfadf2666aaae84fb1001e52d2a87a7
   - enabled: 1
-    path: Assets/Box_Blast_Puzzle/Scenes/Ingame.unity
+    path: Assets/Diamond_Loop/Scenes/Ingame.unity
     guid: 3d2655082036e7044b97969785299fe2
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
