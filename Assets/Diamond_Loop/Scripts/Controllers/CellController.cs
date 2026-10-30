@@ -44,6 +44,19 @@ namespace ClawbearGames
         public PotController GetCurrentPot()
             => potQueue.Count > 0 ? potQueue.Peek() : null;
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        public PotController DebugPeekNextPot()
+        {
+            bool first = true;
+            foreach (PotController pot in potQueue)
+            {
+                if (first) { first = false; continue; }
+                return pot;
+            }
+            return null;
+        }
+#endif
+
 
         /// <summary>
         /// Setup the pot queue.

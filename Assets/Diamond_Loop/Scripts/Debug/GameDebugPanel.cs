@@ -19,7 +19,7 @@ namespace ClawbearGames
         private RectTransform safeRoot;
         private GameObject panel, launcher, confirmation;
         private GameObject[] pages;
-        private Text summary, status, inventory, logText, confirmationText;
+        private Text summary, status, inventory, logText, confirmationText, autoPlayStatus, launcherText;
         private InputField levelInput, coinsInput, boostsInput;
         private ScrollRect scroll;
         private EventSystem ownedEventSystem;
@@ -116,6 +116,7 @@ namespace ClawbearGames
             launchRect.anchoredPosition = new Vector2(-16, -16);
             launchRect.sizeDelta = new Vector2(148, 64);
             launch.image.color = accent;
+            launcherText = launch.GetComponentInChildren<Text>();
 
             RectTransform overlay = Rect("Debug Overlay", safeRoot);
             panel = overlay.gameObject;
@@ -200,6 +201,12 @@ namespace ClawbearGames
             Button(row, "上一关", () => GameDebugService.LoadAdjacentLevel(-1));
             Button(row, "重试本关", () => GameDebugService.RetryLevel());
             Button(row, "下一关", () => GameDebugService.LoadAdjacentLevel(1));
+            Label(page, "自动打关：按底部颜色投放罐子，使用真实收集流程。", 22, 68);
+            RectTransform autoRow = Row(page);
+            Button(autoRow, "自动打本关", () => GameDebugService.StartAutoPlay());
+            Button(autoRow, "连续自动打关", () => GameDebugService.StartAutoPlay(true));
+            Button(page, "停止自动打关", () => GameDebugService.StopAutoPlay());
+            autoPlayStatus = Label(page, "", 21, 96);
             Label(page, "模拟结算：使用真实结算界面，不写入星级与进度。", 22, 68);
             RectTransform stars = Row(page);
             for (int i = 1; i <= 3; i++)
@@ -261,6 +268,8 @@ namespace ClawbearGames
             inventory.text = $"金币 {data.TotalCoins}  ·  备份 {(GameDebugService.HasBackup ? "已有" : "暂无")}\n" +
                 $"槽位 {data.SlotCount} / 磁铁 {data.MagnetCount} / 锤子 {data.HammerCount}\n钥匙 {data.KeyCount} / 冷却 {data.CoolerCount}";
             status.text = GameDebugService.Status;
+            autoPlayStatus.text = GameDebugService.AutoPlayStatus;
+            launcherText.text = GameDebugService.IsAutoPlaying ? "自动中 · F1" : "调试 F1";
             if (activePage == 2 && GameDebugService.PanelVisible)
             {
                 var entries = GameDebugService.Logs;

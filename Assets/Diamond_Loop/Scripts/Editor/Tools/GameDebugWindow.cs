@@ -78,6 +78,18 @@ namespace ClawbearGames
                 if (GUILayout.Button("重试")) GameDebugService.RetryLevel();
                 if (GUILayout.Button("下一关")) GameDebugService.LoadAdjacentLevel(1);
                 EditorGUILayout.EndHorizontal();
+                SpaceTitle("自动打关");
+                EditorGUILayout.HelpBox("自动选择可收集颜色并投放罐子；不会自动使用道具。失败或 45 秒无收集进展时停止。", MessageType.None);
+                using (new EditorGUI.DisabledScope(GameDebugService.IsAutoPlaying || !GameDebugService.CanFinishLevel))
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    if (GUILayout.Button("自动打本关")) GameDebugService.StartAutoPlay();
+                    if (GUILayout.Button("连续自动打关")) GameDebugService.StartAutoPlay(true);
+                    EditorGUILayout.EndHorizontal();
+                }
+                using (new EditorGUI.DisabledScope(!GameDebugService.IsAutoPlaying))
+                    if (GUILayout.Button("停止自动打关")) GameDebugService.StopAutoPlay();
+                EditorGUILayout.HelpBox(GameDebugService.AutoPlayStatus, MessageType.None);
                 stars = EditorGUILayout.IntSlider("胜利星级", stars, 1, 3);
                 using (new EditorGUI.DisabledScope(!GameDebugService.CanFinishLevel))
                 {

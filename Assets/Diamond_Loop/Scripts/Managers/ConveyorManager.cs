@@ -25,6 +25,10 @@ namespace ClawbearGames
         private float updateCount = 0f;
         private int currentSlot = 0;
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        public int DebugSlotCapacity => currentSlot;
+#endif
+
 
         /// <summary>
         /// Init this conveyor with params.

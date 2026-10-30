@@ -18,6 +18,7 @@ namespace ClawbearGames
         private static readonly List<int> levelNumbers = new List<int>();
         private static LevelData levelOverride;
         private static GameDebugPanel host;
+        private static GameDebugAutoPlayer autoPlayer;
         private static int blockThroughFrame;
 
         public static event Action Changed;
@@ -27,7 +28,9 @@ namespace ClawbearGames
         public static float GameSpeed { get; private set; } = 1f;
         public static bool IsPreviewLevel => levelOverride != null;
         public static bool HasBackup => PlayerPrefs.HasKey(BackupKey);
-        public static bool IsBlockingInput => PanelVisible || IsLoading || GameSpeed == 0 || Time.frameCount <= blockThroughFrame;
+        public static bool IsAutoPlaying => autoPlayer != null && autoPlayer.IsRunning;
+        public static string AutoPlayStatus => autoPlayer != null ? autoPlayer.Status : "自动打关未启动";
+        public static bool IsBlockingInput => PanelVisible || IsLoading || IsAutoPlaying || GameSpeed == 0 || Time.frameCount <= blockThroughFrame;
         public static IReadOnlyList<string> Logs => logs;
         public static IReadOnlyList<int> LevelNumbers => levelNumbers;
         public static bool CanFinishLevel => !IsLoading && IngameManager.Instance != null &&
@@ -43,6 +46,7 @@ namespace ClawbearGames
             logs.Clear();
             levelNumbers.Clear();
             host = null;
+            autoPlayer = null;
             levelOverride = null;
             PanelVisible = IsLoading = false;
             GameSpeed = 1f;
@@ -58,12 +62,14 @@ namespace ClawbearGames
             var root = new GameObject("[Development] Game Debug Tools");
             UnityEngine.Object.DontDestroyOnLoad(root);
             host = root.AddComponent<GameDebugPanel>();
+            autoPlayer = root.AddComponent<GameDebugAutoPlayer>();
         }
 
         private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             if (mode != LoadSceneMode.Single) return;
             IsLoading = false;
+            if (scene.name != "Ingame") StopAutoPlay("已离开关卡，自动打关停止", false);
             if (scene.name == "Home" || scene.name == "Level") levelOverride = null;
             EnsurePlayerData();
             Changed?.Invoke();
@@ -114,13 +120,46 @@ namespace ClawbearGames
         private static void ApplyTimeScale() => Time.timeScale = PanelVisible ? 0f : GameSpeed;
 
         public static bool JumpToLevel(int number)
+            => LoadPreviewLevel(number, false);
+
+        private static bool LoadPreviewLevel(int number, bool keepAutoPlay)
         {
             if (IsLoading) return Report(false, "正在切换场景，请稍候");
             LevelData level = Resources.Load<LevelData>("Levels/Level_" + number);
             if (number < 1 || level == null) return Report(false, $"找不到关卡 Level_{number}，请检查 Resources/Levels");
             if (!CanLoadScene("Ingame")) return false;
             levelOverride = level;
-            return LoadScene("Ingame", $"试玩第 {number} 关（不写入关卡进度）");
+            return LoadScene("Ingame", $"试玩第 {number} 关（不写入关卡进度）", keepAutoPlay);
+        }
+
+        public static bool StartAutoPlay(bool continuous = false)
+        {
+            if (IsAutoPlaying) return Report(false, "自动打关已在运行，请先停止");
+            if (!CanFinishLevel || autoPlayer == null || IngameManager.Instance.DebugLevelData == null)
+                return Report(false, "请先进入关卡，再启动自动打关");
+            if (!PlayerDataHandler.IsWatchedTutorial()) return Report(false, "请先完成引导，或点击“跳过引导并重试”");
+            if (ViewManager.Instance.IngameViewController.MessagePanel.gameObject.activeSelf)
+                return Report(false, "请先关闭道具选取，再启动自动打关");
+            EnsureAutomaticBackup();
+            levelOverride = IngameManager.Instance.DebugLevelData;
+            autoPlayer.Begin(IngameManager.Instance, continuous);
+            if (GameSpeed == 0) GameSpeed = 1f;
+            SetPanelVisible(false);
+            return Report(true, continuous ? "已开始连续自动打关；失败、卡住或到达最后一关时停止" : "已开始自动打当前关卡");
+        }
+
+        public static void StopAutoPlay(string reason = "已手动停止自动打关", bool notify = true)
+            => autoPlayer?.Stop(reason, true, notify);
+
+        internal static bool AdvanceAutoPlay()
+        {
+            if (levelNumbers.Count == 0) RefreshLevels();
+            int current = IngameManager.Instance.CurrentLevel;
+            int next = levelNumbers.Find(n => n > current);
+            if (next <= 0) return false;
+            bool loaded = LoadPreviewLevel(next, true);
+            if (!loaded) autoPlayer.Stop("下一关加载失败，自动打关停止", false);
+            return loaded;
         }
 
         public static bool LoadAdjacentLevel(int direction)
@@ -155,6 +194,7 @@ namespace ClawbearGames
         public static bool FinishLevel(bool won, int stars = 3)
         {
             if (!CanFinishLevel) return Report(false, "只能在关卡进行中模拟结算");
+            StopAutoPlay("已切换为模拟结算，自动打关停止", false);
             // Suppress progression and interstitials before the state-change event fires.
             levelOverride = IngameManager.Instance.DebugLevelData;
             GameSpeed = 1f;
@@ -179,9 +219,10 @@ namespace ClawbearGames
             return Report(false, $"场景 {name} 未加入 Build Settings，请添加 Diamond_Loop/Scenes 下的场景");
         }
 
-        private static bool LoadScene(string name, string message)
+        private static bool LoadScene(string name, string message, bool keepAutoPlay = false)
         {
             if (IsLoading || host == null) return Report(false, "调试工具未就绪或正在切换场景");
+            if (!keepAutoPlay) StopAutoPlay("已手动切换场景，自动打关停止", false);
             IsLoading = true; // Set before starting the coroutine to reject repeated clicks.
             GameSpeed = 1f;
             SetPanelVisible(false);

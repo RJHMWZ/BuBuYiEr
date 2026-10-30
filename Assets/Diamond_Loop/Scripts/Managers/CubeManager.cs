@@ -276,6 +276,34 @@ namespace ClawbearGames
             return count;
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // Read the logical columns, so cubes already reserved for a pot are excluded.
+        // The conveyor moves across the whole image: inspect all columns, not the pot's current X.
+        public int DebugReadCubeColors(Dictionary<Color32, int> exposed, Dictionary<Color32, int> remaining)
+        {
+            exposed.Clear();
+            remaining.Clear();
+            int count = 0;
+            if (columnn == null) return count;
+            foreach (List<CubeController> column in columnn)
+            {
+                if (column == null) continue;
+                for (int row = 0; row < column.Count; row++)
+                {
+                    CubeController cube = column[row];
+                    if (cube == null) continue;
+                    count++;
+                    remaining.TryGetValue(cube.Color, out int total);
+                    remaining[cube.Color] = total + 1;
+                    if (row >= 3) continue;
+                    exposed.TryGetValue(cube.Color, out int bottom);
+                    exposed[cube.Color] = bottom + 1;
+                }
+            }
+            return count;
+        }
+#endif
+
 
 
         /// <summary>

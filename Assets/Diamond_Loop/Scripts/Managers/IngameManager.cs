@@ -75,6 +75,7 @@ namespace ClawbearGames
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         public LevelData DebugLevelData => levelData;
+        public bool DebugTryDeployPot(PotController pot) => TryDeployPot(pot);
 
         // Use the real result flow, but cancel startup/timer callbacks first.
         public void DebugFinishLevel(bool won, int stars)
@@ -197,29 +198,9 @@ namespace ClawbearGames
             {
                 if (selectedPot != null)
                 {
-                    stopControl = true;
-
-                    TileController conveyorTile = conveyorManager.GetClosestEmptyTile(selectedPot.transform.position);
-                    if (conveyorTile == null)
-                    {
-                        stopControl = false;
-                        conveyorManager.ShakeCanvas();
-                        selectedPot = null;
-                        return;
-                    }
-
-                    PotController jumpingPot = selectedPot;  // capture before clearing
+                    PotController jumpingPot = selectedPot;
                     selectedPot = null;
-
-                    jumpingPot.JumpToTile(conveyorTile, () =>
-                    {
-                        ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.PotJumped);
-
-                        // ← Tell the source cell to reveal the next queued pot
-                        jumpingPot.OwnerCell?.OnPotLeft();
-
-                        stopControl = false;
-                    });
+                    if (!TryDeployPot(jumpingPot)) conveyorManager.ShakeCanvas();
                 }
                 else
                 {
@@ -265,6 +246,27 @@ namespace ClawbearGames
                 }
             }
 
+        }
+
+        // Manual input and the development auto-player share the same deployment rules.
+        private bool TryDeployPot(PotController pot)
+        {
+            if (stopControl || ingameState != IngameState.Ingame_Playing || pot == null ||
+                !pot.gameObject.activeInHierarchy || !pot.CanSelect || pot.IsOnConveyor ||
+                pot.IsFilled || pot.PotState == PotState.Locked || pot.OwnerCell == null ||
+                pot.OwnerCell.GetCurrentPot() != pot) return false;
+
+            TileController tile = conveyorManager.GetClosestEmptyTile(pot.transform.position);
+            if (tile == null) return false;
+            stopControl = true;
+            selectedPot = null;
+            pot.JumpToTile(tile, () =>
+            {
+                ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.PotJumped);
+                pot.OwnerCell?.OnPotLeft();
+                stopControl = false;
+            });
+            return true;
         }
 
 
