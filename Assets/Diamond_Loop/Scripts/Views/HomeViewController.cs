@@ -106,6 +106,12 @@ namespace ClawbearGames
 
         public override void OnShow()
         {
+            BearHomeMenuController bearMenu = GetComponent<BearHomeMenuController>();
+            if (bearMenu != null && bearMenu.art != null)
+            {
+                bearMenu.Show(this);
+                return;
+            }
             MoveRectTransform(topPanelTrans, topPanelTrans.anchoredPosition, new Vector2(topPanelTrans.anchoredPosition.x, -50f), 0.5f);
             MoveRectTransform(bottomPanelTrans, bottomPanelTrans.anchoredPosition, new Vector2(bottomPanelTrans.anchoredPosition.x, 0f), 0.75f);
             ScaleRectTransform(gameNameTrans, Vector2.zero, Vector2.one, 1f);
@@ -127,6 +133,7 @@ namespace ClawbearGames
 
         public override void OnClose()
         {
+            GetComponent<BearHomeMenuController>()?.Hide();
             settingPanel.OnHide();
             topPanelTrans.anchoredPosition = new Vector2(topPanelTrans.anchoredPosition.x, 250f);
             bottomPanelTrans.anchoredPosition = new Vector2(bottomPanelTrans.anchoredPosition.x, -500f);

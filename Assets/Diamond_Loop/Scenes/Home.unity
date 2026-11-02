@@ -1810,8 +1810,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   iAPViewControllerPrefab: {fileID: 8674163668710216936, guid: e5a1d32f9f6294a43860345b566b146f,
     type: 3}
-  homeViewControllerPrefab: {fileID: 7952047085762347480, guid: 0c706cb750669584a8da148a4438d115,
-    type: 3}
+  homeViewControllerPrefab: {fileID: 2657160893402096483, guid: df30965cc207d7246a178ef6565b8994, type: 3}
   leaderboardViewControllerPrefab: {fileID: 2485817660659279389, guid: 4fb7b5d208de2d14d80fe66aa3c83019,
     type: 3}
   dailyRewardViewControllerPrefab: {fileID: 751609568476273719, guid: 3df0e67226d47a342b1018fad41712ad,

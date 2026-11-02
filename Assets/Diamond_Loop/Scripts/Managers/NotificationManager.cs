@@ -13,6 +13,21 @@ namespace ClawbearGames
 
     public class NotificationManager : MonoBehaviour
     {
+        public bool NotificationsEnabled => PlayerPrefs.GetInt("BUBU_NOTIFICATIONS_ENABLED", 1) == 1;
+
+        public void SetNotificationsEnabled(bool enabled)
+        {
+            PlayerPrefs.SetInt("BUBU_NOTIFICATIONS_ENABLED", enabled ? 1 : 0);
+            PlayerPrefs.Save();
+            if (enabled) return;
+#if UNITY_ANDROID
+            AndroidNotificationCenter.CancelAllScheduledNotifications();
+            AndroidNotificationCenter.CancelAllDisplayedNotifications();
+#elif UNITY_IOS
+            iOSNotificationCenter.RemoveAllScheduledNotifications();
+            iOSNotificationCenter.RemoveAllDeliveredNotifications();
+#endif
+        }
 #if UNITY_ANDROID || UNITY_IOS
         [Header("Daily Notification Configuration")]
         [SerializeField] private string dailyNotificationTitle = "Hey. What's up !!!";
@@ -91,6 +106,7 @@ namespace ClawbearGames
 
         private void OnApplicationPause(bool pause)
         {
+            if (!NotificationsEnabled) return;
             if (pause)
             {
 #if UNITY_ANDROID
