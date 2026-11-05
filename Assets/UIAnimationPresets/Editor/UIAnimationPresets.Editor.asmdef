@@ -1,0 +1,7 @@
+{
+  "name": "UIAnimationPresets.Editor",
+  "rootNamespace": "UIAnimationPresets.Editor",
+  "references": ["UIAnimationPresets.Runtime", "Unity.ugui"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}

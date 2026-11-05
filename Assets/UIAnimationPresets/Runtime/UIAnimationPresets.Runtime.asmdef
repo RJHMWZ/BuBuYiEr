@@ -1,0 +1,6 @@
+{
+  "name": "UIAnimationPresets.Runtime",
+  "rootNamespace": "UIAnimationPresets",
+  "references": ["Unity.ugui"],
+  "autoReferenced": true
+}

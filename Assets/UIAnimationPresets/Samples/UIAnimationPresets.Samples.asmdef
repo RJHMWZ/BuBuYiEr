@@ -1,0 +1,6 @@
+{
+  "name": "UIAnimationPresets.Samples",
+  "rootNamespace": "UIAnimationPresets.Samples",
+  "references": ["UIAnimationPresets.Runtime", "Unity.ugui", "Unity.TextMeshPro"],
+  "autoReferenced": true
+}

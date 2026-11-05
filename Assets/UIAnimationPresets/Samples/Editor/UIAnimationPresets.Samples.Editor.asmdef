@@ -1,0 +1,6 @@
+{
+  "name": "UIAnimationPresets.Samples.Editor",
+  "references": ["UIAnimationPresets.Runtime", "UIAnimationPresets.Editor", "UIAnimationPresets.Samples", "Unity.ugui", "Unity.TextMeshPro"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}

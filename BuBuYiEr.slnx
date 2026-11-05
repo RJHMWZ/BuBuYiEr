@@ -1,4 +1,8 @@
 ﻿<Solution>
   <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="UIAnimationPresets.Runtime.csproj" />
+  <Project Path="UIAnimationPresets.Editor.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="UIAnimationPresets.Samples.csproj" />
+  <Project Path="UIAnimationPresets.Samples.Editor.csproj" />
 </Solution>
