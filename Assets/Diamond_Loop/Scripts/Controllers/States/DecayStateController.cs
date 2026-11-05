@@ -31,6 +31,7 @@ namespace ClawbearGames
         {
             owner = ownerPot;
             decayTime = time;
+            activeCount = true;
 
             //Start flames animation
             if (flamesRenderer != null && flamesSprites != null && flamesSprites.Length > 0)
@@ -71,13 +72,12 @@ namespace ClawbearGames
 
             while (timeRemaining > 0)
             {
+                while (!CanCount()) yield return null;
                 if (countdownText != null)
                     countdownText.text = Mathf.CeilToInt(timeRemaining).ToString();
 
                 yield return new WaitForSeconds(1f);
-                timeRemaining--;
-
-                while (!activeCount) { yield return null; }
+                if (CanCount()) timeRemaining--;
             }
 
             if (countdownText != null)
@@ -87,6 +87,10 @@ namespace ClawbearGames
             owner.PotDecayed();
             BreakState();
         }
+
+        private bool CanCount() => activeCount && IngameManager.Instance != null &&
+            IngameManager.Instance.IsRoundStarted && !IngameManager.Instance.IsLearningRound && !IngameManager.Instance.IsPaused &&
+            IngameManager.Instance.IngameState == IngameState.Ingame_Playing;
 
 
 

@@ -9,6 +9,7 @@ namespace ClawbearGames
 
         [SerializeField] private IAPViewController iAPViewControllerPrefab = null;
         [SerializeField] private HomeViewController homeViewControllerPrefab = null;
+        [SerializeField] private HomeViewController sceneHomeViewController = null;
         [SerializeField] private LeaderboardViewController leaderboardViewControllerPrefab = null;
         [SerializeField] private DailyRewardViewController dailyRewardViewControllerPrefab = null;
         [SerializeField] private LoadingViewController loadingViewControllerPrefab = null;
@@ -17,6 +18,7 @@ namespace ClawbearGames
         [SerializeField] private EndGameViewController endGameViewControllerPrefab = null;
         [SerializeField] private LevelViewController levelViewControllerPrefab = null;
         [SerializeField] private EventSystem eventSystemPrefab = null;
+        [SerializeField] private EventSystem sceneEventSystem = null;
         public IAPViewController IAPViewController { private set; get; }
         public HomeViewController HomeViewController { private set; get; }
         public LeaderboardViewController LeaderboardViewController { private set; get; }
@@ -35,6 +37,11 @@ namespace ClawbearGames
         {
             if (Instance)
             {
+                // Returning Home loads an editable scene copy. Keep the persistent view.
+                if (sceneHomeViewController != null && sceneHomeViewController != Instance.HomeViewController)
+                    Destroy(sceneHomeViewController.gameObject);
+                if (sceneEventSystem != null && sceneEventSystem.transform.parent != Instance.transform)
+                    Destroy(sceneEventSystem.gameObject);
                 DestroyImmediate(gameObject);
             }
             else
@@ -52,7 +59,8 @@ namespace ClawbearGames
                     IAPViewController.OnClose();
 
                     //Instantiate HomeView
-                    HomeViewController = Instantiate(homeViewControllerPrefab, Vector3.zero, Quaternion.identity);
+                    HomeViewController = sceneHomeViewController != null ? sceneHomeViewController
+                        : Instantiate(homeViewControllerPrefab, Vector3.zero, Quaternion.identity);
                     HomeViewController.transform.SetParent(transform, false);
                     HomeViewController.gameObject.name = homeViewControllerPrefab.gameObject.name;
                     HomeViewController.OnClose();
@@ -104,7 +112,8 @@ namespace ClawbearGames
                     LevelViewController.OnClose();
 
                     //Instantiate EventSystem
-                    EventSystem eventSystem = Instantiate(eventSystemPrefab, Vector3.zero, Quaternion.identity);
+                    EventSystem eventSystem = sceneEventSystem != null ? sceneEventSystem
+                        : Instantiate(eventSystemPrefab, Vector3.zero, Quaternion.identity);
                     eventSystem.transform.SetParent(transform, false);
                 }
             }

@@ -6,6 +6,8 @@ namespace ClawbearGames
 {
     public class ReviveViewController : BaseViewController
     {
+        private BearOutcomePanel outcome;
+        private bool adPending;
         [SerializeField] private CanvasGroup canvasGroup = null;
         [SerializeField] private RectTransform reviveButtonTrans = null;
         [SerializeField] private Image reviveSlider = null;
@@ -100,6 +102,21 @@ namespace ClawbearGames
 
         public override void OnShow()
         {
+            adPending = false;
+            BearMenuArt art = ViewManager.Instance.IngameViewController.ThemeArt;
+            if (art != null)
+            {
+                StopAllCoroutines();
+                canvasGroup.alpha = 1;
+                canvasGroup.interactable = canvasGroup.blocksRaycasts = true;
+                if (outcome == null)
+                {
+                    outcome = gameObject.AddComponent<BearOutcomePanel>();
+                    outcome.Initialize(this, art);
+                }
+                outcome.ShowRecovery(this);
+                return;
+            }
             FadeInCanvasGroup(canvasGroup, 1f);
             StartCoroutine(CRScaleReviveButton());
             StartCoroutine(CRFillOutReviveSlider(0.75f));
@@ -108,6 +125,13 @@ namespace ClawbearGames
 
         public override void OnClose()
         {
+            StopAllCoroutines();
+            if (outcome != null)
+            {
+                outcome.Hide();
+                gameObject.SetActive(false);
+                return;
+            }
             canvasGroup.alpha = 0f;
             reviveSlider.fillAmount = 1f;
             reviveButtonTrans.localScale = Vector3.one;
@@ -121,12 +145,44 @@ namespace ClawbearGames
 
         public void OnClickReviveButton()
         {
+            if (adPending || IngameManager.Instance == null) return;
             ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Button);
+            if (IngameManager.Instance.FreeRecovery)
+            {
+                IngameManager.Instance.SetContinueGame();
+                return;
+            }
+            if (!ServicesManager.Instance.AdManager.IsRewardedAdReady())
+            {
+                outcome?.SetAdPending(false, "暂时没有可观看的视频，可以重新开始或返回小屋。\n已经获得的糖果奖励会保留。");
+                return;
+            }
+            adPending = true;
+            outcome?.SetAdPending(true, "视频正在准备，完成观看后会继续本局。");
             ServicesManager.Instance.AdManager.ShowRewardedAd(RewardedAdTarget.REVIVE_PLAYER);
+        }
+
+        public void OnRecoveryAdClosed(bool completed)
+        {
+            adPending = false;
+            if (!completed) outcome?.SetAdPending(false, "本次视频没有看完，你可以再试一次。\n也可以重新开始，已经获得的奖励会保留。");
+        }
+
+        public void OnClickReplayButton()
+        {
+            if (adPending) return;
+            PlayerDataHandler.UpdateTargetLevel(IngameManager.Instance.CurrentLevel);
+            LoadScene("Ingame", 0);
+        }
+
+        public void OnClickHomeButton()
+        {
+            if (!adPending) LoadScene("Home", 0);
         }
 
         public void OnClickCloseButton()
         {
+            if (adPending) return;
             ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Button);
             IngameManager.Instance.GameOver();
         }

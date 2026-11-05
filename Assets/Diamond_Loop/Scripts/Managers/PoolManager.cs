@@ -18,6 +18,7 @@ namespace ClawbearGames
         [SerializeField] private MagnetController magnetControllerPrefab = null;
 
         private List<CubeController> listCubeController = new List<CubeController>();
+        private readonly Stack<CubeController> availableCubes = new Stack<CubeController>(1024);
         private List<PotController> listPotController = new List<PotController>();
         private List<CellController> listCellController = new List<CellController>();
         private List<SawController> listSawController = new List<SawController>();
@@ -55,18 +56,22 @@ namespace ClawbearGames
         /// <returns></returns>
         public CubeController GetCubeController()
         {
-            //Find in the list
-            CubeController cubeController = listCubeController.Where(a => !a.gameObject.activeSelf).FirstOrDefault();
-
-            if (cubeController == null)
+            while (availableCubes.Count > 0)
             {
-                //Didn't find one -> create new one
-                cubeController = Instantiate(cubeControllerPrefab, Vector3.zero, Quaternion.identity);
-                cubeController.gameObject.SetActive(false);
-                listCubeController.Add(cubeController);
+                CubeController available = availableCubes.Pop();
+                if (available != null && !available.gameObject.activeSelf) return available;
             }
-
+            CubeController cubeController = Instantiate(cubeControllerPrefab, Vector3.zero, Quaternion.identity);
+            cubeController.gameObject.SetActive(false);
+            listCubeController.Add(cubeController);
             return cubeController;
+        }
+
+        public void ReleaseCubeController(CubeController cube)
+        {
+            if (cube == null || !cube.gameObject.activeSelf) return;
+            cube.gameObject.SetActive(false);
+            availableCubes.Push(cube);
         }
 
 

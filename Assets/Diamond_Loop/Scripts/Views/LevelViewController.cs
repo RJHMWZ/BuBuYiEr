@@ -6,6 +6,9 @@ namespace ClawbearGames
 {
     public class LevelViewController : BaseViewController
     {
+        [SerializeField] private BearMenuArt themeArt = null;
+        private BearLevelMap bearMap;
+        public bool UsesBearTheme => themeArt != null;
         [SerializeField] private Color lockedColor = Color.gray;
         [SerializeField] private Color unlockedColor = Color.yellow;
         [SerializeField] private RectTransform confirmPanel = null;
@@ -26,6 +29,16 @@ namespace ClawbearGames
         {
             confirmPanel.gameObject.SetActive(false);
             if (mapManager == null) { mapManager = FindFirstObjectByType<MapManager>(); }
+            if (themeArt != null)
+            {
+                if (bearMap == null)
+                {
+                    bearMap = GetComponent<BearLevelMap>();
+                    if (bearMap == null) bearMap = gameObject.AddComponent<BearLevelMap>();
+                }
+                if (!bearMap.IsBuilt) bearMap.Build(this, themeArt, mapManager != null ? mapManager.TotalLevels : 100);
+                else bearMap.Refresh();
+            }
         }
 
         public override void OnClose()
@@ -43,6 +56,11 @@ namespace ClawbearGames
         public void ShowConfirmPanel(int level)
         {
             targetLevel = level;
+            if (bearMap != null)
+            {
+                bearMap.ShowConfirmation(level);
+                return;
+            }
             levelText.text = "LEVEL: " + level.ToString();
             confirmPanel.gameObject.SetActive(true);
             if (level == PlayerDataHandler.GetCurrentLevel())
@@ -77,6 +95,7 @@ namespace ClawbearGames
         public void OnClickCloseButton()
         {
             ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Button);
+            if (bearMap != null) bearMap.HideConfirmation();
             confirmPanel.gameObject.SetActive(false);
         }
 
@@ -84,7 +103,8 @@ namespace ClawbearGames
         public void OnClickCurrentLevelButton()
         {
             ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Button);
-            mapManager.SnapToCurrent();
+            if (bearMap != null) bearMap.SnapToCurrent();
+            else mapManager.SnapToCurrent();
         }
 
 

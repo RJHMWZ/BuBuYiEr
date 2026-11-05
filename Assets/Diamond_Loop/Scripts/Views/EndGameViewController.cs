@@ -8,6 +8,7 @@ namespace ClawbearGames
 {
     public class EndGameViewController : BaseViewController
     {
+        private BearOutcomePanel outcome;
         [SerializeField] private CanvasGroup mainCanvasGroup = null;
         [SerializeField] private RectTransform topPanelTrans = null;
         [SerializeField] private RectTransform buttonsPanelTrans = null;
@@ -60,6 +61,20 @@ namespace ClawbearGames
 
         public override void OnShow()
         {
+            BearMenuArt art = ViewManager.Instance.IngameViewController.ThemeArt;
+            if (art != null)
+            {
+                StopAllCoroutines();
+                mainCanvasGroup.alpha = 1;
+                mainCanvasGroup.interactable = mainCanvasGroup.blocksRaycasts = true;
+                if (outcome == null)
+                {
+                    outcome = gameObject.AddComponent<BearOutcomePanel>();
+                    outcome.Initialize(this, art);
+                }
+                outcome.ShowResult(this);
+                return;
+            }
             FadeInCanvasGroup(mainCanvasGroup, 0.75f);
             MoveRectTransform(topPanelTrans, topPanelTrans.anchoredPosition, new Vector2(topPanelTrans.anchoredPosition.x, -10f), 0.5f);
             MoveRectTransform(bottonPanelTrans, bottonPanelTrans.anchoredPosition, new Vector2(bottonPanelTrans.anchoredPosition.x, 0f), 0.5f);
@@ -85,6 +100,13 @@ namespace ClawbearGames
 
         public override void OnClose()
         {
+            StopAllCoroutines();
+            if (outcome != null)
+            {
+                outcome.Hide();
+                gameObject.SetActive(false);
+                return;
+            }
             mainCanvasGroup.alpha = 0;
             buttonsPanelTrans.localScale = Vector3.zero;
             resultPanel.gameObject.SetActive(false);
@@ -115,7 +137,31 @@ namespace ClawbearGames
             }
 #endif
             ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Button);
-            LoadScene("Ingame", 0.25f);
+            IngameManager game = IngameManager.Instance;
+            if (game.IngameState == IngameState.Ingame_CompleteLevel && !game.HasNextLevel)
+            {
+                LoadScene("Home", .1f);
+                return;
+            }
+            PlayerDataHandler.UpdateTargetLevel(game.IngameState == IngameState.Ingame_CompleteLevel ? game.CurrentLevel + 1 : game.CurrentLevel);
+            LoadScene("Ingame", .1f);
+        }
+
+        public void OnClickReplayButton()
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (GameDebugService.IsPreviewLevel) { GameDebugService.RetryLevel(); return; }
+#endif
+            PlayerDataHandler.UpdateTargetLevel(IngameManager.Instance.CurrentLevel);
+            LoadScene("Ingame", .1f);
+        }
+
+        public void OnClickLevelsButton() => LoadScene("Level", .1f);
+
+        public void OnClickCollectionButton()
+        {
+            BearSoloProgress.PendingStory = Mathf.Max(0, IngameManager.Instance.NewlyUnlockedStory);
+            LoadScene("Home", .1f);
         }
 
         public void OnClickRateAppButton()

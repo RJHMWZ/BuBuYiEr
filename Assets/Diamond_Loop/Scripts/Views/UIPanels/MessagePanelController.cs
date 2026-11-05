@@ -15,6 +15,7 @@ namespace ClawbearGames
 
 
         public PowerUpType PowerUpType { get; private set; }
+        private UnityEngine.UI.Text bearHint;
 
         /// <summary>
         /// Coroutine scale the given RectTransform.
@@ -102,6 +103,22 @@ namespace ClawbearGames
             hammerPanel.gameObject.SetActive(false);
             keyPanel.gameObject.SetActive(false);
             coolerPanel.gameObject.SetActive(false);
+            BearMenuArt art = ViewManager.Instance.IngameViewController.ThemeArt;
+            if (art != null)
+            {
+                if (bearHint == null)
+                {
+                    Transform close = transform.Find("CloseButton");
+                    if (close != null) close.gameObject.SetActive(false);
+                    RectTransform paper = BearGameTheme.Paper(panelTrans, "BearToolPrompt", 12, 0, 1000, 185, BearGameTheme.Cream, 40).rectTransform;
+                    bearHint = BearGameTheme.Label(art, paper, "Description", "", 29, 20, 730, 145, 30);
+                    BearGameTheme.Button(art, paper, "Cancel", "取消", 788, 57, 175, 72, BearGameTheme.Pink, OnClickCloseButton);
+                }
+                bearHint.text = BearToolDialog.Description(type);
+                panelTrans.localScale = Vector3.one;
+                canvasGroup.alpha = 1;
+                return;
+            }
 
             if (type == PowerUpType.Magnet)
             {

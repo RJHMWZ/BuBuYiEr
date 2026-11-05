@@ -1,15 +1,28 @@
 # 情侣小熊主菜单
 
-主菜单及每日奖励、图鉴收藏、商店、设置使用本次提供的五张参考图。原图保存在 `Assets/BuBuYiEr/UI/Art/`，通过 Unity Sprite Editor 数据接口切分为命名精灵；主菜单分成顶部、标题、双熊房间、开始按钮、导航、草地六个独立图层。子页面保留原图装饰底图，领取状态、数值、滑条和交互控件放在独立层。裁切素材和原生网格直接采样原图。
+主菜单使用 `Assets/BuBuYiEr/UI/Art/SceneArt.png` 中已切好的命名精灵。标题、双熊、窗户、窗帘、盆栽、桌面、糖果、按钮、图标和草地均为独立 Image，可直接修改 RectTransform；顶部数值和导航文字为独立 Text。面板与桌面使用九宫格缩放，CanvasScaler 使用 Scale With Screen Size（1024×1536、按宽度匹配）。设置页使用 `SettingArt.png`，每日奖励使用 `DailyArt.png`；共用元素直接引用 SettingArt 和 SceneArt。
 
 ## 打开与编辑
 
-1. 打开 `Assets/Diamond_Loop/Scenes/Home.unity`，运行游戏。
-2. Home 场景中的 ViewManager 指向新预制体 `Assets/BuBuYiEr/UI/Prefabs/BearHomeView.prefab`。
-3. 打开新预制体，在 `BearMenuUI` 下编辑各页面；原模板的预制体仍位于 `Assets/Diamond_Loop/Prefabs/Views/HomeView.prefab`。
-4. 更换原图、修改切片坐标或布局代码后，执行 **Tools → BuBuYiEr → 应用参考图主菜单** 重新生成。
+1. 打开 `Assets/Diamond_Loop/Scenes/Home.unity`，不需要 Play，Scene 和 Game 窗口即可显示主菜单。Scene 窗口会切换到 2D 并定位 UI。
+2. 在 Hierarchy 选中 `HomeMenuCanvas`，展开 `BearMenuUI` 编辑各页面。Inspector 的“编辑模式页面预览”按钮可切换主菜单、每日奖励、图鉴、商店和设置；预览不读取或修改玩家存档。
+3. 场景中的 `HomeMenuCanvas` 是 `Assets/BuBuYiEr/UI/Prefabs/BearHomeView.prefab` 的实例。运行时 ViewManager 直接复用该实例；返回主页会移除新加载的重复 UI 和 EventSystem。
+4. 需要给 Home 场景补回 UI、绑定引用或清理旧三维展示物体时，执行 **Tools → BuBuYiEr → 将主菜单生成到 Home 场景**。这项操作保留现有 UI 布局。
+5. 更换原图、修改切片坐标或布局代码后，执行 **Tools → BuBuYiEr → 应用参考图主菜单** 重新生成预制体并同步 Home 场景。
+6. 修改 SceneArt 切图后，执行 **Tools → BuBuYiEr → 使用 SceneArt 重建主菜单**，只重建主页并更新场景实例。该操作会覆盖主页的手工布局调整，其余四个页面保留。
+7. 修改 SettingArt 切图后，执行 **Tools → BuBuYiEr → 使用 SettingArt 重建设置面板**，只重建设置页。切片名称、矩形和标识均保留；面板和滑条补充九宫格边框。
+8. 修改 DailyArt 切图后，执行 **Tools → BuBuYiEr → 使用 DailyArt 重建每日奖励**，只重建每日奖励页。保留现有切片名称、矩形及标识。
+9. 修改 ShopArt 后，执行 **Tools → BuBuYiEr → 使用 ShopArt 重建商店**，只重建商店页。图集尚无切片时创建命名切片；已有切片时保留原切片。
+
+设置页的背景、标题底板、条目底板、图标、音量滑条、客服按钮和蝴蝶结均可独立编辑。滑条绑定原有音效/音乐设置，震动和通知按钮继续使用原有保存逻辑。SettingArt 独立保存在 `BearMenuArt.settingsSprites` 中，以 `Setting/切片名` 引用，避免其 `TitleBg` 与 SceneArt 的同名精灵冲突。返回按钮、金币、加号、双熊、窗帘和花草复用 SceneArt。
+
+每日奖励在 `BearMenuUI/DailyReward` 下按 Day1—Day7 分组，卡片背景、日期、奖励图标、数量和领取控件均可独立编辑。DailyArt 保存在 `BearMenuArt.dailySprites`，以 `Daily/切片名` 引用，避免同名金币和爱心覆盖其他图集。面板、日期底板、领取按钮和蝴蝶结复用 SettingArt；房间、双熊、顶部栏和花草复用 SceneArt。运行时显示实际领取状态与冷却；编辑模式预览显示第 1 天已领取、第 2 天可领取，不读写玩家存档。此次仅修改工程文件，未运行测试或使用 computer-use。
+
+商店在 `BearMenuUI/Shop` 下按分类标签、NewPlayerPack 和 Product1—Product4 分组。ShopArt 独立保存到 `BearMenuArt.shopSprites`，以 `Shop/切片名` 引用；面板、蝴蝶结和箭头复用 SettingArt，奖励图标复用 DailyArt，房间、顶部栏和草地复用 SceneArt。商品图、名称、数量、价格、购买按钮均可独立编辑。礼包分类显示全部五张商品卡片，其余分类只显示对应商品。未填写商品 ID 时使用参考价格并提示“暂未上架”；填写商品 ID 后显示真实本地化价格，等待商店连接时显示省略号，购买继续调用原 IAPManager。此次商店修改直接保存到预制体和 Home 场景，未运行测试或使用 computer-use。
 
 生成器会重建新预制体的界面层级。需要反复生成的布局调整应写进 `BearMenuFactory.cs`，切图坐标在 `Editor/BearMenuBuilder.cs`；直接手工修改生成层级后，不要再次生成，以免覆盖这些手工调整。
+
+Home 场景已移除旧 Environment、传送带、立柱、边框、Background 模型及 Directional Light；HomeManager 只保留存档初始化和主页启动，旧传送带滚动逻辑已删除。小熊菜单预制体内停用的旧模板 UI 及其组件也已移除。保留 Main Camera 的二维背景与 AudioListener，以及其他页面和玩法仍然依赖的 ViewManager、ServicesManager、音频、金币、广告等服务；关卡场景和共享资源不受此次清理影响。
 
 ## 已接入的行为
 
@@ -34,13 +47,15 @@
 
 ## 尺寸与资源
 
-主菜单设计尺寸为 1024×1536，其他页面为 941×1672。布局保留原图比例，并适配安全区域；较长手机屏幕会增加主菜单标题上下的背景留白，双熊、桌面和开始按钮保持衔接，不拉长小熊和按钮。横屏使用居中的完整竖屏界面。
+主菜单设计尺寸为 1024×1536，其他页面为 941×1672。主菜单使用顶部、居中和底部锚点分配各区域间距，并适配安全区域；角色、图标和按钮保持各自比例，桌面和面板使用九宫格伸缩。横屏使用居中的完整竖屏界面。
 
 动态中文采用 [Google Fonts 收录的站酷快乐体](https://github.com/google/fonts/tree/main/ofl/zcoolkuaile)，数字采用 [Baloo 2](https://github.com/google/fonts/tree/main/ofl/baloo2) 的 700 字重静态实例（实例字体名为 BuBu Menu Round）。两份字体的 OFL 许可文件随资源保存在 `Assets/BuBuYiEr/UI/Fonts/`。原图内的标题、角色和装饰保留原始像素。
 
 界面入口代码为 `BearHomeMenuController.cs`，原生控件和布局由 `BearMenuFactory.cs` 生成。原有调试面板和自动打关仍独立使用。
 
 ## 预览与验证
+
+以下图片来自先前的参考图版本；当前 SceneArt 版主菜单以 Home 场景和 BearHomeView 预制体为准。此次 SceneArt 重建按要求仅修改工程文件，没有运行测试。
 
 - [主菜单（参考图比例）](Previews/home-reference-size.png) / [主菜单（9:16 长屏）](Previews/home-portrait.png)
 - [每日奖励](Previews/daily.png) / [图鉴收藏](Previews/collection.png) / [商店](Previews/shop.png) / [设置](Previews/settings.png)

@@ -6,6 +6,8 @@ namespace ClawbearGames
 {
     public class BaseViewController : MonoBehaviour
     {
+        private bool sceneLoading;
+        protected virtual void OnEnable() => sceneLoading = false;
         [SerializeField] private ViewType viewType = ViewType.HOME_VIEW;
         public ViewType ViewType { get { return viewType; } }
 
@@ -189,6 +191,8 @@ namespace ClawbearGames
         /// <param name="delay"></param>
         public void LoadScene(string sceneName, float delay)
         {
+            if (sceneLoading) return;
+            sceneLoading = true;
             StartCoroutine(CRLoadScene(sceneName, delay));
         }
 
@@ -201,7 +205,8 @@ namespace ClawbearGames
         /// <returns></returns>
         private IEnumerator CRLoadScene(string sceneName, float delay)
         {
-            yield return new WaitForSeconds(delay);
+            yield return new WaitForSecondsRealtime(Mathf.Max(0, delay));
+            if (IngameManager.Instance != null) IngameManager.Instance.PrepareToLeave();
             LoadingManager.SetTargetScene(sceneName);
             UnityEngine.SceneManagement.SceneManager.LoadScene("Loading");
         }

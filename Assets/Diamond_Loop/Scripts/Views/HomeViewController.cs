@@ -133,7 +133,13 @@ namespace ClawbearGames
 
         public override void OnClose()
         {
-            GetComponent<BearHomeMenuController>()?.Hide();
+            BearHomeMenuController bearMenu = GetComponent<BearHomeMenuController>();
+            if (bearMenu != null && bearMenu.art != null)
+            {
+                bearMenu.Hide();
+                gameObject.SetActive(false);
+                return;
+            }
             settingPanel.OnHide();
             topPanelTrans.anchoredPosition = new Vector2(topPanelTrans.anchoredPosition.x, 250f);
             bottomPanelTrans.anchoredPosition = new Vector2(bottomPanelTrans.anchoredPosition.x, -500f);
@@ -164,7 +170,14 @@ namespace ClawbearGames
         public void OnClickPlayButton()
         {
             ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Button);
-            LoadScene("Level", 0.25f);
+            PlayerDataHandler.UpdateTargetLevel(BearSoloProgress.PlayableLevel(PlayerDataHandler.GetCurrentLevel()));
+            LoadScene("Ingame", 0.1f);
+        }
+
+        public void OnClickLevelsButton()
+        {
+            ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Button);
+            LoadScene("Level", 0.1f);
         }
 
 

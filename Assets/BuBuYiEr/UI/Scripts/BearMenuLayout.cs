@@ -22,11 +22,14 @@ namespace ClawbearGames
             float height = parent.rect.height * safeHeight;
             float scale = Mathf.Min(width / designSize.x, height / designSize.y);
             rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(.5f,.5f);
-            rect.sizeDelta = new Vector2(designSize.x, flexibleMain ? Mathf.Max(designSize.y, height / scale) : designSize.y);
-            rect.localScale = Vector3.one * scale;
-            rect.anchoredPosition = Screen.width > 0 && Screen.height > 0 ? new Vector2(
+            Vector2 size = new Vector2(designSize.x, flexibleMain ? Mathf.Max(designSize.y, height / scale) : designSize.y);
+            Vector3 localScale = Vector3.one * scale;
+            Vector2 position = Screen.width > 0 && Screen.height > 0 ? new Vector2(
                 (safe.center.x / Screen.width - .5f) * parent.rect.width,
                 (safe.center.y / Screen.height - .5f) * parent.rect.height) : Vector2.zero;
+            if (rect.sizeDelta != size) rect.sizeDelta = size;
+            if (rect.localScale != localScale) rect.localScale = localScale;
+            if (rect.anchoredPosition != position) rect.anchoredPosition = position;
         }
     }
 }

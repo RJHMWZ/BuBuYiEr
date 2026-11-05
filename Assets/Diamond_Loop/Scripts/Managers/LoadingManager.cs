@@ -10,6 +10,7 @@ namespace ClawbearGames
 
         private void Start()
         {
+            Time.timeScale = 1f;
             ViewManager.Instance.OnShowView(ViewType.LOADING_VIEW);
             StartCoroutine(CRLoadScene());
         }
@@ -22,19 +23,19 @@ namespace ClawbearGames
         /// <returns></returns>
         private IEnumerator CRLoadScene()
         {
-            float loadingAmount = 0f;
-            while (loadingAmount < 0.95f)
+            string scene = string.IsNullOrEmpty(targetScene) || !Application.CanStreamedLevelBeLoaded(targetScene) ? "Home" : targetScene;
+            AsyncOperation operation = SceneManager.LoadSceneAsync(scene);
+            operation.allowSceneActivation = false;
+            float displayed = 0f;
+            while (displayed < 1f)
             {
-                yield return new WaitForSeconds(0.01f);
-                loadingAmount += 0.02f;
-                ViewManager.Instance.LoadingViewController.SetLoadingAmount(loadingAmount);
-            }
-
-            AsyncOperation asyn = SceneManager.LoadSceneAsync(targetScene);
-            while (!asyn.isDone)
-            {
+                float progress = Mathf.Clamp01(operation.progress / .9f);
+                displayed = Mathf.MoveTowards(displayed, progress, Time.unscaledDeltaTime * 4f);
+                ViewManager.Instance.LoadingViewController.SetLoadingAmount(displayed);
                 yield return null;
             }
+            operation.allowSceneActivation = true;
+            yield return operation;
         }
 
         /// <summary>

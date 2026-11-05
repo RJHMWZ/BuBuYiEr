@@ -117,7 +117,8 @@ namespace ClawbearGames
             return Report(true, speed == 0 ? "已暂停；面板关闭后仍保持暂停" : $"运行速度设为 {speed:0.##}x；关闭面板后生效");
         }
 
-        private static void ApplyTimeScale() => Time.timeScale = PanelVisible ? 0f : GameSpeed;
+        private static void ApplyTimeScale() => Time.timeScale = PanelVisible ||
+            (IngameManager.Instance != null && (IngameManager.Instance.IsPaused || IngameManager.Instance.IsRecoverySuspended)) ? 0f : GameSpeed;
 
         public static bool JumpToLevel(int number)
             => LoadPreviewLevel(number, false);

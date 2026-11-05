@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -69,90 +69,49 @@ namespace ClawbearGames
         /// <param name="callback"></param>
         public void AddTotalCoins(int amount, float delay, Action callback = null)
         {
-            int startCoins = TotalCoins;
-            int endCoins = TotalCoins + amount;
-            StartCoroutine(CRUpdateCoins(0, startCoins, endCoins, delay, callback));
+            ApplyTotalDelta(amount);
+            CompleteLater(delay, callback);
         }
 
-
-        /// <summary>
-        /// Add an amount of coins to CollectedCoins with given delay time and callback.
-        /// </summary>
-        /// <param name="amount"></param>
-        /// <param name="delay"></param>
-        /// <param name="callback"></param>
         public void AddCollectedCoins(int amount, float delay, Action callback = null)
         {
-            int startCoins = CollectedCoins;
-            int endCoins = CollectedCoins + amount;
-            StartCoroutine(CRUpdateCoins(1, startCoins, endCoins, delay, callback));
+            long updated = (long)CollectedCoins + amount;
+            CollectedCoins = (int)Math.Max(0L, Math.Min(int.MaxValue, updated));
+            CollectedCoinChanged?.Invoke(CollectedCoins);
+            CompleteLater(delay, callback);
         }
 
-
-
-
-        /// <summary>
-        /// Remove an amount of total coins with delay time and callback.
-        /// </summary>
-        /// <param name="amount"></param>
-        /// <param name="delay"></param>
-        /// <param name="callback"></param>
         public void RemoveTotalCoins(int amount, float delay, Action callback = null)
         {
-            int startCoins = TotalCoins;
-            int endCoins = TotalCoins - amount;
-            StartCoroutine(CRUpdateCoins(0, startCoins, endCoins, delay, callback));
+            ApplyTotalDelta(-Math.Max(0, amount));
+            CompleteLater(delay, callback);
         }
 
-
-
-        /// <summary>
-        /// Coroutine updating the coins with start coins, end coins and delay time.
-        /// index == 1: updating TotalCoins.
-        /// index == 1: updating CollectedCoins.
-        /// </summary>
-        /// <param name="index"></param>
-        /// <param name="startCoins"></param>
-        /// <param name="endCoins"></param>
-        /// <param name="delay"></param>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        private IEnumerator CRUpdateCoins(int index, int startCoins, int endCoins, float delay, Action callback = null)
+        public bool TrySpendCoins(int amount)
         {
-            //Delay == 0
-            if (delay == 0)
-            {
-                if (index == 1)
-                {
-                    //Set CollectedCoins directly
-                    CollectedCoins = endCoins;
-                    CollectedCoinChanged?.Invoke(CollectedCoins);
-                    callback?.Invoke();
-                }
-                else
-                {
-                    //Set TotalCoins directly
-                    TotalCoins = endCoins;
-                    callback?.Invoke();
-                }
+            if (amount < 0 || TotalCoins < amount) return false;
+            ApplyTotalDelta(-amount);
+            return true;
+        }
 
-                yield break;
-            }
+        private void ApplyTotalDelta(int amount)
+        {
+            // Persist one transaction at a time. Decorative delays must not overwrite later transactions.
+            long updated = (long)TotalCoins + amount;
+            TotalCoins = (int)Math.Max(0L, Math.Min(int.MaxValue, updated));
+            PlayerPrefs.Save();
+        }
 
-            yield return new WaitForSeconds(delay);
-            float t = 0;
-            float runTime = 0.25f;
-            while (t < runTime)
-            {
-                t += Time.deltaTime;
-                float factor = EasyType.MatchedLerpType(LerpType.EaseOutQuad, t / runTime);
-                int newCoins = Mathf.RoundToInt(Mathf.Lerp(startCoins, endCoins, factor));
-                if (index == 0) { TotalCoins = newCoins; }
-                else { SetCollectedCoins(newCoins); }
-                yield return null;
-            }
-            if (index == 0) { TotalCoins = endCoins; ; }
-            else { SetCollectedCoins(endCoins); }
+        private void CompleteLater(float delay, Action callback)
+        {
+            if (callback == null) return;
+            if (delay <= 0) callback();
+            else StartCoroutine(DelayedCallback(delay, callback));
+        }
+
+        private IEnumerator DelayedCallback(float delay, Action callback)
+        {
+            yield return new WaitForSecondsRealtime(delay);
             callback?.Invoke();
         }
     }

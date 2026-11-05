@@ -16,9 +16,12 @@ namespace ClawbearGames
         {
             vh.Clear();
             Rect rect = GetPixelAdjustedRect();
+            if (rect.width <= 0 || rect.height <= 0) return;
+            float outerRadius = Mathf.Clamp(radius, 0, Mathf.Min(rect.width, rect.height) * .5f);
             Rect inside = new Rect(rect.x + border, rect.y + border, Mathf.Max(0, rect.width - border * 2), Mathf.Max(0, rect.height - border * 2));
-            if (border > 0) AddBorder(vh, rect, inside, radius, Mathf.Max(0,radius-border), borderColor);
-            AddRounded(vh, inside, Mathf.Max(0, radius - border), bottomColor, color);
+            float innerRadius = Mathf.Clamp(outerRadius - border, 0, Mathf.Min(inside.width, inside.height) * .5f);
+            if (border > 0) AddBorder(vh, rect, inside, outerRadius, innerRadius, borderColor);
+            AddRounded(vh, inside, innerRadius, bottomColor, color);
         }
 
         private static void AddBorder(VertexHelper vh, Rect outer, Rect inner, float outerRadius, float innerRadius, Color color)

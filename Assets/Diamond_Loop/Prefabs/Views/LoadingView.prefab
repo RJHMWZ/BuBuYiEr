@@ -50,6 +50,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   viewType: 4
+  themeArt: {fileID: 11400000, guid: e6c22129ed690464694e51dea40ce9db, type: 2}
   loadingPercentText: {fileID: 8114454843660155558}
   loadingSlider: {fileID: 2593814234935666314}
 --- !u!1 &4600093767494127170

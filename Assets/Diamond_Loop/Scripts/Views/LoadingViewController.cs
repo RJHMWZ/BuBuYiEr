@@ -5,6 +5,8 @@ namespace ClawbearGames
 {
     public class LoadingViewController : BaseViewController
     {
+        [SerializeField] private BearMenuArt themeArt = null;
+        private bool themeBuilt;
 
         [SerializeField] private Text loadingPercentText = null;
         [SerializeField] private Slider loadingSlider = null;
@@ -18,7 +20,12 @@ namespace ClawbearGames
 
         public override void OnShow()
         {
-            loadingSlider.value = 0f;
+            if (!themeBuilt && themeArt != null)
+            {
+                BearGameTheme.BuildLoading(this, themeArt, out loadingSlider, out loadingPercentText);
+                themeBuilt = true;
+            }
+            SetLoadingAmount(0f);
         }
 
         public override void OnClose()
@@ -34,8 +41,9 @@ namespace ClawbearGames
         /// <param name="amount"></param>
         public void SetLoadingAmount(float amount)
         {
+            amount = Mathf.Clamp01(amount);
             loadingSlider.value = amount;
-            loadingPercentText.text = System.Math.Round((amount / 1f) * 100f, 2).ToString() + "%";
+            loadingPercentText.text = Mathf.RoundToInt(amount * 100f) + "%";
         }
 
 

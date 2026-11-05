@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ClawbearGames
@@ -18,6 +18,23 @@ namespace ClawbearGames
         private List<PotController> spawnedPots = new List<PotController>();
         private LevelData currentLevel;
         private float tileSpacing = 1f;
+        private readonly List<PotController> collectingPots = new List<PotController>(12);
+        private int collectingFrame = -1;
+
+        public IReadOnlyList<PotController> CollectingPots
+        {
+            get
+            {
+                if (collectingFrame != Time.frameCount)
+                {
+                    collectingFrame = Time.frameCount;
+                    collectingPots.Clear();
+                    foreach (PotController pot in spawnedPots)
+                        if (pot != null && pot.IsOnConveyor && !pot.IsFilled && pot.CanCollect) collectingPots.Add(pot);
+                }
+                return collectingPots;
+            }
+        }
 
 
 
@@ -364,25 +381,28 @@ namespace ClawbearGames
         /// </summary>
         /// <param name="screenPos">Screen position the player tapped.</param>
         /// <param name="callback">Callback with result: false = not consumed, true = hammer applied.</param>
+        private PotController FindVisibleStatePot(Vector2 screenPoint, PotState state)
+        {
+            Camera camera = IngameManager.Instance.CameraParent.MainCamera;
+            PotController nearest = null;
+            float best = float.MaxValue;
+            foreach (PotController pot in spawnedPots)
+            {
+                if (pot == null || !pot.gameObject.activeInHierarchy || pot.PotState != state || pot.IsFilled) continue;
+                Vector3 center = camera.WorldToScreenPoint(pot.transform.position + Vector3.up * .65f);
+                if (center.z <= 0) continue;
+                Vector2 origin = camera.WorldToScreenPoint(pot.transform.position);
+                Vector2 edge = camera.WorldToScreenPoint(pot.transform.position + Vector3.right * tileSpacing);
+                float radius = Mathf.Max(18, Vector2.Distance(origin, edge) * .7f);
+                float distance = (screenPoint - (Vector2)center).sqrMagnitude;
+                if (distance <= radius * radius && distance < best) { nearest = pot; best = distance; }
+            }
+            return nearest;
+        }
+
         public void HandleHammer(Vector2 screenPos, System.Action<bool> callback)
         {
-            Vector3 worldPos = GetWorldPos(screenPos);
-
-            //Look for a Frozen pot ---
-            PotController closestFrozenPot = null;
-            float closestDishDist = 0.5f;
-
-            foreach (var pot in spawnedPots)
-            {
-                if (pot == null || pot.PotState != PotState.Frozen) continue;
-
-                float dist = Vector3.Distance(worldPos, pot.transform.position);
-                if (dist < closestDishDist)
-                {
-                    closestDishDist = dist;
-                    closestFrozenPot = pot;
-                }
-            }
+            PotController closestFrozenPot = FindVisibleStatePot(screenPos, PotState.Frozen);
 
             if (closestFrozenPot != null)
             {
@@ -414,23 +434,7 @@ namespace ClawbearGames
         /// <param name="callback">Callback with result: false = not consumed, true = hammer applied.</param>
         public void HandleKey(Vector2 screenPos, System.Action<bool> callback)
         {
-            Vector3 worldPos = GetWorldPos(screenPos);
-
-            //Look for a locked pot ---
-            PotController closestFrozenPot = null;
-            float closestDishDist = 0.5f;
-
-            foreach (var pot in spawnedPots)
-            {
-                if (pot == null || pot.PotState != PotState.Locked) continue;
-
-                float dist = Vector3.Distance(worldPos, pot.transform.position);
-                if (dist < closestDishDist)
-                {
-                    closestDishDist = dist;
-                    closestFrozenPot = pot;
-                }
-            }
+            PotController closestFrozenPot = FindVisibleStatePot(screenPos, PotState.Locked);
 
             if (closestFrozenPot != null)
             {
@@ -461,23 +465,7 @@ namespace ClawbearGames
         /// <param name="callback">Callback with result: false = not consumed, true = hammer applied.</param>
         public void HandleCooler(Vector2 screenPos, System.Action<bool> callback)
         {
-            Vector3 worldPos = GetWorldPos(screenPos);
-
-            //Look for a locked pot ---
-            PotController closestFrozenPot = null;
-            float closestDishDist = 0.5f;
-
-            foreach (var pot in spawnedPots)
-            {
-                if (pot == null || pot.PotState != PotState.Decay) continue;
-
-                float dist = Vector3.Distance(worldPos, pot.transform.position);
-                if (dist < closestDishDist)
-                {
-                    closestDishDist = dist;
-                    closestFrozenPot = pot;
-                }
-            }
+            PotController closestFrozenPot = FindVisibleStatePot(screenPos, PotState.Decay);
 
             if (closestFrozenPot != null)
             {

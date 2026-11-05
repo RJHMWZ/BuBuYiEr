@@ -16,11 +16,51 @@ namespace ClawbearGames
 
 
         public PowerUpType PowerUpType => powerUpType;
+        public bool IsUnlocked => unlocked;
         public int PurchasePrice => purchasePrice;
         public Sprite BoostIcon => boostIcon;
 
         private int currentAmount = 0;
         private int purchasePrice = 0;
+        private bool unlocked = true;
+
+        public void ApplyBearTheme(BearMenuArt art)
+        {
+            Image background = GetComponent<Image>();
+            background.sprite = art.Get("BtnBg");
+            background.color = Color.white;
+            background.type = Image.Type.Sliced;
+            Transform legacyIcon = transform.Find("ButtonIcon");
+            if (legacyIcon != null) legacyIcon.gameObject.SetActive(false);
+            BearIllustration illustrated = BearIllustration.Create(transform, "IllustratedTool", BearIllustration.Tool(powerUpType), 17, 4, 130, 124);
+            illustrated.transform.SetSiblingIndex(1);
+            foreach (Shadow shadow in GetComponentsInChildren<Shadow>(true)) shadow.enabled = false;
+            Image badge = bottomPanel.GetComponent<Image>();
+            if (badge != null)
+            {
+                badge.sprite = art.Get("TopUIBg");
+                badge.color = Color.white;
+                badge.type = Image.Type.Sliced;
+            }
+            Image blocked = blockedPanel.GetComponent<Image>();
+            if (blocked != null)
+            {
+                blocked.sprite = art.Get("BtnBg");
+                blocked.type = Image.Type.Sliced;
+                blocked.color = new Color(.90f, .85f, .76f, .97f);
+            }
+            foreach (Image icon in blockedPanel.GetComponentsInChildren<Image>(true))
+                if (icon != blocked) icon.enabled = false;
+            BearIllustration.Create(blockedPanel, "IllustratedLock", BearDrawing.Lock, 49, 13, 65, 65);
+            Image plus = plusButtonTrans.GetComponent<Image>();
+            if (plus != null)
+            {
+                plus.sprite = art.Get("IconAdd");
+                plus.color = Color.white;
+            }
+            BearGameTheme.StyleText(amountText, art, 28, true);
+            BearGameTheme.StyleText(levelText, art, 27, true);
+        }
 
 
         /// <summary>
@@ -59,6 +99,7 @@ namespace ClawbearGames
         public void OnInit(PowerUpData data)
         {
             purchasePrice = data.cost;
+            unlocked = IngameManager.Instance.CurrentLevel >= data.unlockLevel;
             UpdateCurrentAmount();
 
             if (IngameManager.Instance.CurrentLevel < data.unlockLevel)
@@ -117,6 +158,9 @@ namespace ClawbearGames
 
         public void OnClick()
         {
+            if (!unlocked || IngameManager.Instance == null || IngameManager.Instance.IsPaused ||
+                !IngameManager.Instance.IsRoundStarted || IngameManager.Instance.StopControl ||
+                IngameManager.Instance.IngameState != IngameState.Ingame_Playing) return;
             ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Button);
             if (plusButtonTrans.gameObject.activeSelf)
             {

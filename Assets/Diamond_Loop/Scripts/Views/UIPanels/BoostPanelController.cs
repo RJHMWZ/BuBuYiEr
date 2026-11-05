@@ -19,6 +19,7 @@ namespace ClawbearGames
         private BoostButtonController clickedButton = null;
         private int boostAmount = 1;
         private int currentPrice = 0;
+        private BearIllustration illustratedIcon;
 
         /// <summary>
         /// Coroutine scale the given RectTransform.
@@ -100,6 +101,17 @@ namespace ClawbearGames
             clickedButton = boostButton;
             currentPrice = boostButton.PurchasePrice;
             boostIcon.sprite = boostButton.BoostIcon;
+            if (ViewManager.Instance.IngameViewController.ThemeArt != null)
+            {
+                boostIcon.enabled = false;
+                if (illustratedIcon == null)
+                {
+                    illustratedIcon = BearIllustration.Create(boostIcon.transform, "IllustratedTool", BearIllustration.Tool(boostButton.PowerUpType), 0, 0, 128, 128);
+                    BearMenuFactory.Stretch(illustratedIcon.rectTransform);
+                }
+                illustratedIcon.drawing = BearIllustration.Tool(boostButton.PowerUpType);
+                illustratedIcon.SetVerticesDirty();
+            }
             priceText.text = boostButton.PurchasePrice.ToString();
             purchaseButton.interactable = ServicesManager.Instance.CoinManager.TotalCoins >= boostButton.PurchasePrice;
             mainPanelTrans.localScale = Vector3.zero;
@@ -138,7 +150,11 @@ namespace ClawbearGames
         public void OnClickPurchaseButton()
         {
             ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Rewarded);
-            ServicesManager.Instance.CoinManager.RemoveTotalCoins(currentPrice, 0.2f);
+            if (!ServicesManager.Instance.CoinManager.TrySpendCoins(currentPrice))
+            {
+                ViewManager.Instance.IngameViewController.ShowHint("金币还不够，装满糖果罐就能继续收集金币");
+                return;
+            }
             clickedButton.AddBoostAmount(boostAmount);
             ViewManager.Instance.IngameViewController.CreateMinusCoinEffect(currentPrice, buttonTarget.position);
             gameObject.SetActive(false);

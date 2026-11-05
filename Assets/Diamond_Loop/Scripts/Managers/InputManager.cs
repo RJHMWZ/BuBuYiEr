@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
 using UnityEngine.EventSystems;
@@ -17,6 +17,24 @@ namespace ClawbearGames
         private static bool wasPressed;
         private static bool isPressed;
         private static bool isInitialized = false;
+        private static EventSystem raycastSystem;
+        private static PointerEventData raycastPointer;
+        private static readonly List<RaycastResult> raycastResults = new List<RaycastResult>(24);
+
+        private static void RaycastUI(Vector2 position)
+        {
+            raycastResults.Clear();
+            EventSystem current = EventSystem.current;
+            if (current == null) return;
+            if (raycastPointer == null || raycastSystem != current)
+            {
+                raycastSystem = current;
+                raycastPointer = new PointerEventData(current);
+            }
+            raycastPointer.Reset();
+            raycastPointer.position = position;
+            current.RaycastAll(raycastPointer, raycastResults);
+        }
 
         /// <summary>
         /// Initialize the InputManager. Call this once at game startup (e.g., in Awake)
@@ -138,15 +156,8 @@ namespace ClawbearGames
         /// </summary>
         public static bool IsPointerOverUI()
         {
-            if (EventSystem.current == null)
-                return false;
-
-            Vector2 pointerPosition = GetMousePosition();
-
-            PointerEventData eventData = new PointerEventData(EventSystem.current) { position = pointerPosition };
-            List<RaycastResult> results = new List<RaycastResult>();
-            EventSystem.current.RaycastAll(eventData, results);
-            return results.Count > 0;
+            RaycastUI(GetMousePosition());
+            return raycastResults.Count > 0;
         }
 
         /// <summary>
@@ -155,21 +166,8 @@ namespace ClawbearGames
         /// </summary>
         public static GameObject GetCurrentUIObject()
         {
-            if (EventSystem.current == null)
-                return null;
-
-            Vector2 pointerPosition = GetMousePosition();
-
-            PointerEventData eventData = new PointerEventData(EventSystem.current) { position = pointerPosition };
-            List<RaycastResult> results = new List<RaycastResult>();
-            EventSystem.current.RaycastAll(eventData, results);
-
-            if (results.Count > 0)
-            {
-                return results[0].gameObject;
-            }
-
-            return null;
+            RaycastUI(GetMousePosition());
+            return raycastResults.Count > 0 ? raycastResults[0].gameObject : null;
         }
 
         /// <summary>
@@ -178,21 +176,10 @@ namespace ClawbearGames
         /// </summary>
         public static bool IsTouchingUIObject(GameObject uiObject)
         {
-            if (uiObject == null || EventSystem.current == null)
-                return false;
-
-            Vector2 pointerPosition = GetMousePosition();
-
-            PointerEventData eventData = new PointerEventData(EventSystem.current) { position = pointerPosition };
-            List<RaycastResult> results = new List<RaycastResult>();
-            EventSystem.current.RaycastAll(eventData, results);
-
-            foreach (RaycastResult result in results)
-            {
-                if (result.gameObject == uiObject)
-                    return true;
-            }
-
+            if (uiObject == null) return false;
+            RaycastUI(GetMousePosition());
+            foreach (RaycastResult result in raycastResults)
+                if (result.gameObject == uiObject) return true;
             return false;
         }
 

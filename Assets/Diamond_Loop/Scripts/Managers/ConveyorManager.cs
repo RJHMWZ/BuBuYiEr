@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 namespace ClawbearGames
 {
+    [DefaultExecutionOrder(-100)]
     public class ConveyorManager : MonoBehaviour
     {
         [SerializeField] private TileController[] tiles = null;
@@ -24,6 +25,9 @@ namespace ClawbearGames
         private float updateInterval = 0.2f;
         private float updateCount = 0f;
         private int currentSlot = 0;
+        private Transform[] tileTransforms;
+        private int displayedUsed = -1, displayedCapacity = -1;
+        public bool CanIncreaseSlot => currentSlot < tiles.Length;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         public int DebugSlotCapacity => currentSlot;
@@ -38,6 +42,8 @@ namespace ClawbearGames
         {
             moveSpeed = 1.5f;
             currentSlot = initSlot;
+            tileTransforms = new Transform[tiles.Length];
+            for (int i = 0; i < tiles.Length; i++) tileTransforms[i] = tiles[i].transform;
             slotText.text = GetUsedTile().ToString() + "/" + initSlot.ToString();
             canvasPos = canvasTrans.localPosition;
 
@@ -59,19 +65,22 @@ namespace ClawbearGames
         private void Update()
         {
             //Stop if not Playing state
-            if (IngameManager.Instance.IngameState != IngameState.Ingame_Playing) return;
+            IngameManager game = IngameManager.Instance;
+            if (game == null || tileTransforms == null || game.IsPaused || !game.IsRoundStarted || game.IngameState != IngameState.Ingame_Playing || Time.deltaTime <= 0) return;
 
             float delta = moveSpeed * Time.deltaTime;
-            foreach (var tile in tiles)
+            foreach (Transform tile in tileTransforms)
             {
                 // Move right
-                tile.transform.localPosition += new Vector3(delta, 0f, 0f);
+                Vector3 position = tile.localPosition;
+                position.x += delta;
 
                 // If tile passed the right edge, wrap it to the left
-                if (tile.transform.localPosition.x > rightEdge + tileWidth * 0.5f)
+                if (position.x > rightEdge + tileWidth * 0.5f)
                 {
-                    tile.transform.localPosition -= new Vector3(totalWidth, 0f, 0f);
+                    position.x -= totalWidth;
                 }
+                tile.localPosition = position;
             }
 
 
@@ -80,7 +89,13 @@ namespace ClawbearGames
             if (updateCount >= updateInterval)
             {
                 updateCount = 0;
-                slotText.text = GetUsedTile().ToString() + "/" + currentSlot.ToString();
+                int used = GetUsedTile();
+                if (used != displayedUsed || currentSlot != displayedCapacity)
+                {
+                    displayedUsed = used;
+                    displayedCapacity = currentSlot;
+                    slotText.text = used + "/" + currentSlot;
+                }
             }
         }
 
@@ -160,10 +175,10 @@ namespace ClawbearGames
             float minDist = float.MaxValue;
             foreach (var tile in tiles)
             {
-                var tileController = tile.GetComponent<TileController>();
+                var tileController = tile;
                 if (tileController == null || tileController.HasPot()) continue;
 
-                float dist = Vector3.Distance(tile.transform.position, position);
+                float dist = (tile.transform.position - position).sqrMagnitude;
                 if (dist < minDist)
                 {
                     minDist = dist;

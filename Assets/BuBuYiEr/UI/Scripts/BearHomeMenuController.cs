@@ -11,39 +11,39 @@ namespace ClawbearGames
         [HideInInspector] public GameObject[] pages;
         [HideInInspector] public Text[] coinTexts;
         [HideInInspector] public Text levelText;
+        [HideInInspector] public Text soloPlayLabel;
         [HideInInspector] public Text[] dailyStates;
         [HideInInspector] public Button[] dailyClaims;
         [HideInInspector] public BearMenuShape[] dailyCards;
-        [HideInInspector] public BearMenuCutout[] dailyStateArt;
-        [HideInInspector] public GameObject[] dailyFooterPapers;
+        [HideInInspector] public Image[] dailyCardArt, dailyStatusIcons;
+        [HideInInspector] public GameObject[] dailyAvailableArt, dailyClaimBackgrounds;
+        [HideInInspector] public Text dailyCooldownText;
         [HideInInspector] public Slider soundSlider, musicSlider;
         [HideInInspector] public RectTransform[] toggleKnobs;
         [HideInInspector] public BearMenuShape[] toggleTracks;
+        [HideInInspector] public Image[] toggleTrackImages;
         [HideInInspector] public GameObject[] storyLocks;
         [HideInInspector] public GameObject[] storySelections;
         [HideInInspector] public Text storyTitle, storyBody;
         [HideInInspector] public Image storyPreview;
         [HideInInspector] public GameObject unlockedTravelArt, storyDetailsOverlay;
-        [HideInInspector] public GameObject alternateCollection, filteredShop, modal;
+        [HideInInspector] public GameObject alternateCollection, modal;
         [HideInInspector] public Text alternateTitle, alternateBody, modalTitle, modalBody;
-        [HideInInspector] public Image filteredShopArt, modalPicture;
-        [HideInInspector] public BearMenuShape[] collectionTabs, shopTabs;
+        [HideInInspector] public Image modalPicture;
+        [HideInInspector] public BearMenuShape[] collectionTabs;
+        [HideInInspector] public Image[] shopTabImages;
+        [HideInInspector] public RectTransform[] shopProductRows;
+        [HideInInspector] public Text shopCategoryHint;
         [HideInInspector] public Text[] storePrices;
-        [HideInInspector] public Text filteredShopPrice;
         private HomeViewController owner;
-        private int currentPage, currentStory, currentShopTab;
+        private int currentPage, currentShopTab;
         private float refreshAt;
         private bool subscribed;
+        public BearCollectionPanel CollectionPanel => pages != null && pages.Length > 2 && pages[2] != null
+            ? pages[2].GetComponent<BearCollectionPanel>() : null;
         private const string Extras = "BUBU_UI_EXTRA_";
-        private static readonly string[] Titles = { "奶茶约会", "星空晚安", "糖果回忆", "花园散步", "甜蜜旅行", "特别的约定" };
-        private static readonly string[] Stories = {
-            "阳光正好，\n我们一起去喝了最爱的奶茶，\n甜甜的味道，就像我们的心情♡",
-            "夜空亮起小小的星星，\n靠在你身边，\n今天也想轻轻说一声晚安♡",
-            "把每一颗糖果装进小罐子，\n也把和你一起的快乐，\n慢慢收藏起来♡",
-            "花开的时候一起散步，\n风吹过小小的花园，\n每一步都有你的陪伴♡",
-            "带着最爱的点心出发，\n走过新的风景，\n身边的你就是最好的旅伴♡",
-            "用一张小小的心意券，\n许下属于我们的约定，\n以后也一起收集更多回忆♡" };
-
+        private static readonly string[] ShopPreviewPrices={"¥6","¥12","¥12","¥30","¥68"};
+        private static readonly float[] ShopRowPositions={651,947,1097,1247,1397};
         public void Show(HomeViewController view)
         {
             owner = view;
@@ -57,6 +57,9 @@ namespace ClawbearGames
             }
             if (themeRoot == null) BearMenuFactory.Build(this);
             if (themeRoot == null) return;
+            BearMenuFactory.EnsureSoloActions(this);
+            if (CollectionPanel == null || CollectionPanel.layoutVersion != BearCollectionPanel.LayoutVersion)
+                BearMenuFactory.RebuildCollection(this);
             foreach (Transform child in transform) child.gameObject.SetActive(child == themeRoot);
             themeRoot.gameObject.SetActive(true);
             if (!subscribed)
@@ -69,6 +72,13 @@ namespace ClawbearGames
             soundSlider.SetValueWithoutNotify(PlayerDataHandler.GetSoundValue());
             musicSlider.SetValueWithoutNotify(PlayerDataHandler.GetMusicValue());
             OpenPage(0);
+            if (BearSoloProgress.PendingStory >= 0)
+            {
+                int story = BearSoloProgress.PendingStory;
+                BearSoloProgress.PendingStory = -1;
+                OpenPage(2);
+                CollectionPanel?.SelectStory(story);
+            }
         }
 
         public void Hide()
@@ -96,10 +106,13 @@ namespace ClawbearGames
             {
                 case "page": OpenPage(argument); break;
                 case "play": owner.OnClickPlayButton(); break;
+                case "levels": owner.OnClickLevelsButton(); break;
                 case "claim": Claim(argument); break;
                 case "story": SelectStory(argument); break;
                 case "read": ReadStory(); break;
                 case "collection-tab": CollectionTab(argument); break;
+                case "collection-expression": CollectionPanel?.SelectExpression(argument); break;
+                case "collection-favorite": CollectionPanel?.ToggleFavorite(); break;
                 case "shop-tab": ShopTab(argument); break;
                 case "buy": Buy(argument); break;
                 case "close-modal": modal.SetActive(false); break;
@@ -125,7 +138,7 @@ namespace ClawbearGames
             currentPage = Mathf.Clamp(index, 0, pages.Length - 1);
             for (int i = 0; i < pages.Length; i++) pages[i].SetActive(i == currentPage);
             modal.SetActive(false);
-            if (currentPage == 2) { CollectionTab(1); SelectStory(currentStory); }
+            if (currentPage == 2) CollectionPanel?.Show();
             if (currentPage == 3) ShopTab(0);
             Refresh();
         }
@@ -144,8 +157,15 @@ namespace ClawbearGames
         {
             if (ServicesManager.Instance == null || !PlayerDataHandler.HasData()) return;
             OnCoins(PlayerDataHandler.GetTotalCoin());
-            levelText.text = "Lv. " + PlayerDataHandler.GetCurrentLevel();
+            int progressLevel = PlayerDataHandler.GetCurrentLevel();
+            int playableLevel = BearSoloProgress.PlayableLevel(progressLevel);
+            levelText.text = "Lv. " + playableLevel;
+            if (soloPlayLabel != null)
+                soloPlayLabel.text = PlayerDataHandler.IsWatchedTutorial()
+                    ? (playableLevel < progressLevel ? "重温第 " : "继续第 ") + playableLevel + " 关" : "开始收集";
             int cooldown = ServicesManager.Instance.DailyRewardManager.TimeRemainsTillNextReward();
+            Transform rewardNotice = pages[0].transform.Find("Navigation/DailyReward/RewardNotice");
+            if (rewardNotice != null) rewardNotice.gameObject.SetActive(cooldown == 0);
             int day = PlayerDataHandler.GetCurrentRewardIndex();
             // The template contains nine daily rewards; this theme has a seven-day cycle.
             if (day >= dailyStates.Length && cooldown == 0)
@@ -154,51 +174,59 @@ namespace ClawbearGames
                 PlayerDataHandler.UpdateCurrentRewardIndex(day);
                 PlayerPrefs.Save();
             }
-            for (int i = 0; i < dailyStates.Length; i++)
-            {
-                bool available = i == day && cooldown == 0;
-                dailyClaims[i].interactable = available;
-                bool claimed = i < day;
-                bool waiting = i == day && cooldown > 0;
-                bool originalState = i == 0 ? claimed : i == 1 ? available : !claimed && !available && !waiting;
-                dailyFooterPapers[i].SetActive(!originalState);
-                dailyStateArt[i].transform.parent.gameObject.SetActive(!originalState && !waiting);
-                dailyStateArt[i].sprite = art.Get(claimed ? "DailyClaimedFooter" : available ? "DailyClaimButton" : i == 6 ? "DailyWideLockedFooter" : "DailyLockedFooter");
-                dailyStateArt[i].silhouette = available ? "capsule" : "rectangle";
-                dailyStateArt[i].SetVerticesDirty();
-                RectTransform stateRect = dailyStateArt[i].rectTransform;
-                stateRect.anchoredPosition = new Vector2(available ? (i == 6 ? 9 : 14) : 0, 0);
-                stateRect.sizeDelta = new Vector2(available ? 211 : i == 6 ? 229 : 240, i == 6 ? 68 : 80);
-                dailyCards[i].border = available && i != 1 ? 4 : 0;
-                dailyCards[i].borderColor = new Color32(229, 150, 24, 255);
-                dailyCards[i].SetVerticesDirty();
-                dailyStates[i].text = i < day ? "已领取" : available ? "领取" : i == day ?
-                    $"{cooldown / 3600:00}:{cooldown / 60 % 60:00}:{cooldown % 60:00}" : "待领取";
-                dailyStates[i].gameObject.SetActive(waiting);
-            }
+            RefreshDailyRewards(day,cooldown);
             SetToggle(0, PlayerPrefs.GetInt("BUBU_VIBRATION_ENABLED", 1) == 1);
             SetToggle(1, ServicesManager.Instance.NotificationManager.NotificationsEnabled);
-            for (int i = 0; i < storyLocks.Length; i++) storyLocks[i].SetActive(PlayerDataHandler.GetCurrentLevel() < UnlockLevel(i));
-            if (unlockedTravelArt != null) unlockedTravelArt.SetActive(PlayerDataHandler.GetCurrentLevel() >= UnlockLevel(4));
+            if (currentPage == 2) CollectionPanel?.RefreshProgress();
             for (int i = 0; i < storePrices.Length; i++)
             {
                 string price = Price(i);
-                storePrices[i].transform.parent.gameObject.SetActive(price != "N/A");
-                if (price != "N/A") storePrices[i].text = price;
+                bool configured=i<art.productIds.Length && !string.IsNullOrEmpty(art.productIds[i]);
+                storePrices[i].text = !configured ? "未上架" : price != "N/A" ? price : "连接中";
             }
-            string filteredPrice = Price(currentShopTab);
-            filteredShopPrice.transform.parent.gameObject.SetActive(currentShopTab > 0 && filteredPrice != "N/A");
-            if (filteredPrice != "N/A") filteredShopPrice.text = filteredPrice;
         }
 
         private string Price(int index) => index < art.productIds.Length && !string.IsNullOrEmpty(art.productIds[index])
             ? ServicesManager.Instance.IAPManager.GetLocalizedPriceString(art.productIds[index]) : "N/A";
+
+        public void RefreshDailyRewards(int day,int cooldown)
+        {
+            string time=$"{cooldown / 3600:00}:{cooldown / 60 % 60:00}:{cooldown % 60:00}";
+            for(int i=0;i<dailyStates.Length;i++)
+            {
+                bool claimed=i<day;
+                bool available=i==day && cooldown==0;
+                bool waiting=i==day && cooldown>0;
+                bool showIcon=!available && !waiting;
+                dailyClaims[i].interactable=available;
+                dailyCardArt[i].gameObject.SetActive(!available || i==6);
+                dailyCardArt[i].color=claimed?new Color32(235,221,201,255):Color.white;
+                dailyAvailableArt[i].SetActive(available && i!=6);
+                dailyClaimBackgrounds[i].SetActive(available);
+                dailyStatusIcons[i].gameObject.SetActive(showIcon);
+                dailyStatusIcons[i].sprite=art.Get(claimed?"Daily/IconTick":"Daily/IconLock");
+                dailyCards[i].border=available && i==6?3:0;
+                dailyCards[i].borderColor=new Color32(229,150,24,255);
+                dailyCards[i].SetVerticesDirty();
+                Text state=dailyStates[i];
+                state.gameObject.SetActive(true);
+                state.font=waiting?art.numberFont:art.chineseFont;
+                state.fontSize=waiting?29:34;
+                state.text=claimed?"已领取":available?"领取":waiting?time:"待领取";
+                state.rectTransform.anchoredPosition=new Vector2(showIcon?61:0,0);
+                state.rectTransform.sizeDelta=new Vector2(showIcon?163:228,69);
+            }
+            dailyCooldownText.gameObject.SetActive(cooldown>0);
+            dailyCooldownText.text=(day>=7?"下一轮奖励：":"下次领取：")+time;
+        }
 
         private void SetToggle(int index, bool enabled)
         {
             toggleTracks[index].color = enabled ? new Color32(255,224,82,255) : new Color32(220,207,189,255);
             toggleTracks[index].bottomColor = toggleTracks[index].color;
             toggleTracks[index].SetVerticesDirty();
+            if(toggleTrackImages!=null && index<toggleTrackImages.Length && toggleTrackImages[index]!=null)
+                toggleTrackImages[index].gameObject.SetActive(enabled);
             toggleKnobs[index].anchoredPosition = new Vector2(enabled ? 97 : 31, -30);
         }
 
@@ -232,38 +260,31 @@ namespace ClawbearGames
             Message("领取成功", new[] { "金币 ×100", "爱心 ×3", "四叶草 ×1", "小花 ×5", "装饰券 ×1", "金币 ×300", "糖果罐 ×1" }[index] + "\n奖励已放入你的收藏。");
         }
 
-        private static int UnlockLevel(int chapter) => chapter == 0 ? 1 : chapter * 5;
-        private void SelectStory(int index)
-        {
-            if (PlayerDataHandler.GetCurrentLevel() < UnlockLevel(index)) { Message("还差一点点", "完成到第 " + UnlockLevel(index) + " 关，解锁这段回忆。"); return; }
-            currentStory = index;
-            for (int i = 0; i < storySelections.Length; i++) storySelections[i].SetActive(i == index);
-            storyTitle.text = Titles[index];
-            storyBody.text = Stories[index];
-            storyPreview.sprite = art.Get(index == 0 ? "StoryPreview0" : "StoryImage" + index);
-            storyDetailsOverlay.SetActive(index != 0);
-        }
-        private void ReadStory() => Message(Titles[currentStory], Stories[currentStory], art.Get("StoryImage" + currentStory));
+        private void SelectStory(int index) => CollectionPanel?.SelectStory(index);
+        private void ReadStory() => CollectionPanel?.ReadSelected();
+        private void CollectionTab(int index) => CollectionPanel?.SelectTab(index);
 
-        private void CollectionTab(int index)
-        {
-            for (int i = 0; i < collectionTabs.Length; i++) collectionTabs[i].gameObject.SetActive(i == index);
-            alternateCollection.SetActive(index != 1);
-            alternateTitle.text = index == 0 ? "表情收藏" : "动画收藏";
-            alternateBody.text = index == 0 ? "小熊的每一种心情，都值得收藏。\n\n更多表情内容即将加入。" : "一起记录会动的小小幸福。\n\n更多动画内容即将加入。";
-        }
         private void ShopTab(int index)
         {
-            currentShopTab = index;
-            for (int i = 0; i < shopTabs.Length; i++) shopTabs[i].gameObject.SetActive(i == index);
-            filteredShop.SetActive(index != 0);
-            if (index != 0)
-            {
-                filteredShopArt.sprite = art.Get("ShopRow" + index);
-                BearMenuAction button = filteredShop.GetComponentInChildren<BearMenuAction>();
-                button.argument = index;
-            }
+            PreviewShopCategory(index);
             Refresh();
+        }
+
+        public void PreviewShopCategory(int index)
+        {
+            currentShopTab=Mathf.Clamp(index,0,4);
+            for(int i=0;i<shopTabImages.Length;i++)
+            {
+                bool selected=i==currentShopTab;
+                shopTabImages[i].sprite=art.Get(selected?"Shop/TabSelected":"Shop/TabNormal");
+                shopTabImages[i].rectTransform.sizeDelta=new Vector2(172,selected?106:82);
+            }
+            for(int i=0;i<shopProductRows.Length;i++)
+            {
+                shopProductRows[i].gameObject.SetActive(currentShopTab==0 || currentShopTab==i);
+                shopProductRows[i].anchoredPosition=new Vector2(43,-(currentShopTab==0?ShopRowPositions[i]:652));
+            }
+            shopCategoryHint.gameObject.SetActive(currentShopTab!=0);
         }
         private void Buy(int index)
         {
@@ -289,6 +310,7 @@ namespace ClawbearGames
             bodyRect.anchoredPosition = new Vector2(48, picture != null ? -454 : -170);
             bodyRect.sizeDelta = new Vector2(685, picture != null ? 220 : 480);
             modalPicture.sprite = picture;
+            BearMenuFactory.CenterImage(modalPicture);
             modalPicture.gameObject.SetActive(picture != null);
         }
     }

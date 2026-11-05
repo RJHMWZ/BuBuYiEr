@@ -17,6 +17,13 @@ namespace ClawbearGames
 
         private bool isShownFirst = false;
 
+        public void ApplyBearTheme(BearMenuArt art)
+        {
+            firstInstruction = "点击罐子，把它送上糖果传送带";
+            secondInstruction = "收集同色糖果，装满每一个罐子吧！";
+            BearGameTheme.StyleText(instructionText, art, 36);
+        }
+
         /// <summary>
         /// Coroutine fade circle image.
         /// </summary>
@@ -55,6 +62,7 @@ namespace ClawbearGames
         /// </summary>
         public void OnShow()
         {
+            isShownFirst = false;
             handTrans.anchoredPosition = firstPos;
             instructionText.text = firstInstruction;
             StartCoroutine(CRFadeCircle());

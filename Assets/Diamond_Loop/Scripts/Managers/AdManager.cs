@@ -89,7 +89,7 @@ namespace ClawbearGames
                 }
                 else if (rewardedAdTarget == RewardedAdTarget.REVIVE_PLAYER)
                 {
-                    IngameManager.Instance.GameOver();
+                    ViewManager.Instance.ReviveViewController.OnRecoveryAdClosed(false);
                 }
             }
         }
@@ -102,6 +102,7 @@ namespace ClawbearGames
         /// <param name="ingameState"></param>
         private void IngameManager_IngameStateChanged(IngameState ingameState)
         {
+            if (IngameManager.Instance != null && IngameManager.Instance.CurrentLevel <= 3) return;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (GameDebugService.IsPreviewLevel) return;
 #endif

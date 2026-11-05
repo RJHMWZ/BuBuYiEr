@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,6 +24,9 @@ namespace ClawbearGames
         public DecayStateController DecayState => decayState;
         public LockedStateController LockedState => lockedState;
         public int RemainingCapacity => Mathf.Max(0, requiredCount - reservedCount);
+        public float FillRatio => requiredCount > 0 ? Mathf.Clamp01((float)currentCount / requiredCount) : 0;
+        public float DisplayedFill => displayedFill;
+        public Vector3 CollectionPosition => jarView != null ? jarView.CollectionPosition : transform.position + Vector3.up * .8f;
         public bool IsOnConveyor { get; private set; }
         public bool CanCollect { get; private set; }
         public bool IsFilled { get; private set; }
@@ -41,8 +44,11 @@ namespace ClawbearGames
         private PotData potData = null;
         private TileController tileController = null;
         private CellController cellController = null;
-        private Coroutine fillCoroutine = null;
-        private Coroutine bounceCoroutine = null;
+        private BearJarView jarView;
+        private float displayedFill, fillVelocity, bounceAmplitude, bouncePhase, bounceAfter;
+        private bool inTransit, percentDirty, shaking;
+        private float shakeStart;
+        private Vector3 shakeOrigin;
         private Vector3 originalScale = Vector3.zero;
         private Vector2Int gridPosition = Vector2Int.zero;
         private const float FillMinY = 0.22f;
@@ -50,9 +56,7 @@ namespace ClawbearGames
         private const float FillScaleNormal = 0.85f; // 0% → 70%
         private const float FillScaleMax = 0.77f; // at 100%
         private const float ScaleStartAt = 0.70f;
-        private float fillAnimDuration = 0.3f;
         private float jumpDuration = 0.3f;
-        private float jumpHeight = 2f;
         private float revealDuration = 0.3f;
         private int requiredCount = 0;
         private int currentCount = 0;
@@ -66,6 +70,10 @@ namespace ClawbearGames
         /// <param name="data"></param>
         public void OnInit(PotData data)
         {
+            StopAllCoroutines();
+            inTransit = percentDirty = shaking = false;
+            displayedFill = fillVelocity = bounceAmplitude = bouncePhase = 0;
+            transform.localScale = Vector3.one;
             potData = data;
             IsFilled = false;
             CanSelect = false;
@@ -89,6 +97,17 @@ namespace ClawbearGames
 
             // Reset fill image
             SetFillImmediate(0f);
+            BearMenuArt art = ViewManager.Instance != null ? ViewManager.Instance.IngameViewController.ThemeArt : null;
+            if (art != null)
+            {
+                jarView = GetComponent<BearJarView>();
+                if (jarView == null)
+                {
+                    jarView = gameObject.AddComponent<BearJarView>();
+                    jarView.Initialize(this, art, percentText);
+                }
+                jarView.SetOpacity(1);
+            }
         }
 
 
@@ -188,64 +207,56 @@ namespace ClawbearGames
         public void OnCubeArrived()
         {
             if (currentCount >= requiredCount || IsFilled) return;
-
             currentCount++;
-            float fillRatio = Mathf.Clamp01((float)currentCount / requiredCount);
-            percentText.text = Mathf.RoundToInt(fillRatio * 100).ToString() + "%";
-
-            if (fillCoroutine != null) StopCoroutine(fillCoroutine);
-            fillCoroutine = StartCoroutine(CRAnimateFill(fillRatio));
-
-            if (currentCount >= requiredCount)
-            {
-                IsFilled = true;
-                CanCollect = false;
-                IsOnConveyor = false;
-                transform.SetParent(null);
-                StartCoroutine(CRMoveUp());
-            }
-            else
-            {
-                Bounce();
-            }
+            percentDirty = true;
+            if (currentCount < requiredCount) { Bounce(); return; }
+            IsFilled = true;
+            CanCollect = false;
+            IsOnConveyor = false;
+            displayedFill = 1;
+            bounceAmplitude = 0;
+            percentText.text = "100%";
+            percentDirty = false;
+            transform.SetParent(null, true);
+            StartCoroutine(CRMoveUp());
         }
 
-
-
-        /// <summary>
-        /// Animate fill image to target ratio.
-        /// </summary>
-        private IEnumerator CRAnimateFill(float targetRatio)
+        private void Update()
         {
-            float elapsed = 0f;
-            Vector3 startPos = fillImage.localPosition;
-            Vector3 startScale = fillImage.localScale;
-
-            float targetY = Mathf.Lerp(FillMinY, FillMaxY, targetRatio);
-            float targetScale = targetRatio >= ScaleStartAt
-                ? Mathf.Lerp(FillScaleNormal, FillScaleMax, (targetRatio - ScaleStartAt) / (1f - ScaleStartAt))
-                : FillScaleNormal;
-
-            Vector3 endPos = new Vector3(fillImage.localPosition.x, targetY, fillImage.localPosition.z);
-            Vector3 endScale = new Vector3(targetScale, targetScale, fillImage.localScale.z);
-
-            while (elapsed < fillAnimDuration)
+            IngameManager game = IngameManager.Instance;
+            float delta = Time.deltaTime;
+            if (game == null || delta <= 0 || game.IsPaused || !game.IsRoundStarted ||
+                game.IngameState != IngameState.Ingame_Playing) return;
+            if (IsOnConveyor)
             {
-                elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / fillAnimDuration);
-                float smooth = Mathf.SmoothStep(0f, 1f, t);
-
-                fillImage.localPosition = Vector3.Lerp(startPos, endPos, smooth);
-                fillImage.localScale = Vector3.Lerp(startScale, endScale, smooth);
-
-                yield return null;
+                float x = transform.position.x;
+                CanCollect = !inTransit && PotState != PotState.Frozen && x > -2.5f && x < 2.5f;
             }
-
-            fillImage.localPosition = endPos;
-            fillImage.localScale = endScale;
-            fillCoroutine = null;
+            if (percentDirty)
+            {
+                percentText.text = Mathf.RoundToInt(FillRatio * 100) + "%";
+                percentDirty = false;
+            }
+            float target = FillRatio;
+            if (Mathf.Abs(displayedFill - target) > .0001f)
+            {
+                displayedFill = Mathf.SmoothDamp(displayedFill, target, ref fillVelocity, .065f, Mathf.Infinity, delta);
+                if (jarView == null) SetFillImmediate(displayedFill);
+            }
+            if (inTransit || IsFilled) return;
+            if (bounceAmplitude > .0001f && Time.time >= bounceAfter)
+            {
+                bouncePhase += delta * 26;
+                bounceAmplitude *= Mathf.Exp(-12 * delta);
+                float pulse = Mathf.Sin(bouncePhase) * bounceAmplitude;
+                transform.localScale = Vector3.Scale(originalScale, new Vector3(1 + pulse, 1 - pulse * .7f, 1 + pulse));
+                if (bounceAmplitude <= .0001f) transform.localScale = originalScale;
+            }
+            if (!shaking || Time.time < shakeStart) return;
+            float t = (Time.time - shakeStart) / .18f;
+            if (t >= 1) { transform.localPosition = shakeOrigin; shaking = false; }
+            else transform.localPosition = shakeOrigin + Vector3.right * (Mathf.Sin(t * Mathf.PI * 5) * .045f * (1 - t));
         }
-
 
         /// <summary>
         /// Set fill image instantly without animation (used on init/reset).
@@ -272,6 +283,9 @@ namespace ClawbearGames
         /// <param name="onComplete"></param>
         public void JumpToTile(TileController tile, Action onComplete = null)
         {
+            ResetFeedback();
+            inTransit = true;
+            CanSelect = false;
             CanCollect = false;
             decayState.ActiveCount = false;
             StartCoroutine(CRJumpToTile(tile, onComplete));
@@ -286,72 +300,41 @@ namespace ClawbearGames
         /// <returns></returns>
         private IEnumerator CRJumpToTile(TileController tile, Action onComplete)
         {
-            Vector3 originalScale = transform.localScale;
-            Vector3 originalPos = transform.position;
-
-            //Squash down (0.3s) ---
-            Vector3 squashedScale = new Vector3(originalScale.x * 1.5f, originalScale.y * 0.7f, originalScale.z * 1.5f);
-            float elapsed = 0f;
-            float scaleDuration = 0.1f;
-            while (elapsed < scaleDuration)
+            Vector3 scale = originalScale;
+            Vector3 compressed = Vector3.Scale(scale, new Vector3(1.08f, .94f, 1.08f));
+            float elapsed = 0;
+            while (elapsed < .055f)
             {
                 elapsed += Time.deltaTime;
-                float t = Mathf.SmoothStep(0f, 1f, elapsed / scaleDuration);
-                transform.localScale = Vector3.Lerp(originalScale, squashedScale, t);
+                transform.localScale = Vector3.Lerp(scale, compressed, elapsed / .055f);
                 yield return null;
             }
-            transform.localScale = squashedScale;
-
-
-            elapsed = 0f;
-            Vector3 startPos = transform.position;
-            float duration = jumpDuration;
-            float height = jumpHeight;
-            while (elapsed < duration)
+            Vector3 start = transform.position;
+            float height = Mathf.Clamp(Vector3.Distance(start, tile.PotPosition) * .22f, .55f, 1.1f);
+            elapsed = 0;
+            while (elapsed < jumpDuration)
             {
                 elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / duration);
-
-                Vector3 currentTarget = tile.PotPosition;
-                Vector3 horizontal = Vector3.Lerp(startPos, currentTarget, t);
-                float arc = height * Mathf.Sin(t * Mathf.PI);
-
-                transform.position = new Vector3(horizontal.x, horizontal.y + arc, horizontal.z);
-                transform.localScale = Vector3.Lerp(squashedScale, originalScale, t);
+                float t = Mathf.Clamp01(elapsed / jumpDuration);
+                float smooth = t * t * (3 - 2 * t);
+                Vector3 position = Vector3.Lerp(start, tile.PotPosition, smooth);
+                position.y += Mathf.Sin(t * Mathf.PI) * height;
+                transform.position = position;
+                transform.localScale = Vector3.Lerp(compressed, scale, smooth);
                 yield return null;
             }
-
-            transform.localScale = originalScale;
-            transform.SetParent(tile.transform);
-            transform.localPosition = tile.PotPosition;
+            transform.localScale = scale;
             tile.PotController = this;
-            IsOnConveyor = true;
             tileController = tile;
+            IsOnConveyor = true;
+            inTransit = false;
+            CanCollect = PotState != PotState.Frozen && transform.position.x > -2.5f && transform.position.x < 2.5f;
             decayState.ActiveCount = true;
-            onComplete?.Invoke();
             percentText.gameObject.SetActive(true);
-            float fillRatio = Mathf.Clamp01((float)currentCount / requiredCount);
-            percentText.text = Mathf.RoundToInt(fillRatio * 100).ToString() + "%";
+            percentDirty = true;
+            onComplete?.Invoke();
             EffectManager.Instance.PlayPotDeployEffect(transform);
-
-            while (IsOnConveyor)
-            {
-                if (PotState == PotState.Frozen)
-                {
-                    CanCollect = false;
-                }
-                else
-                {
-                    float currentX = transform.position.x;
-                    if (currentX < 2.5f && currentX > -2.5f) { CanCollect = true; }
-                    else { CanCollect = false; }
-                }
-                yield return null;
-            }
         }
-
-
-
 
         /// <summary>
         /// Called by the Magnet power-up. Frees the conveyor tile and arcs this pot
@@ -359,6 +342,9 @@ namespace ClawbearGames
         /// </summary>
         public void ReturnToCell(CellController cell, Action onComplete = null)
         {
+            ResetFeedback();
+            inTransit = true;
+            CanSelect = false;
             // Break the CRJumpToTile while-loop and stop cube collection
             IsOnConveyor = false;
             CanCollect = false;
@@ -387,15 +373,15 @@ namespace ClawbearGames
         {
             Vector3 startPos = transform.position;
             Vector3 endPos = cell.transform.position;
-            float duration = 0.45f;
-            float arcHeight = 1.5f;
+            float duration = 0.32f;
+            float arcHeight = .75f;
             float elapsed = 0f;
 
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsed / duration);
-                Vector3 pos = Vector3.Lerp(startPos, endPos, t);
+                Vector3 pos = Vector3.Lerp(startPos, endPos, t * t * (3 - 2 * t));
                 pos.y += Mathf.Sin(t * Mathf.PI) * arcHeight;
                 transform.position = pos;
                 yield return null;
@@ -403,6 +389,7 @@ namespace ClawbearGames
 
             transform.position = endPos;
             percentText.gameObject.SetActive(false);
+            inTransit = false;
 
             // Hand back to the cell so it shows this pot as current
             cell.ReceivePotFromMagnet(this);
@@ -427,6 +414,7 @@ namespace ClawbearGames
             if (tileController != null) tileController.PotController = null;
             transform.SetParent(null);
             gameObject.SetActive(false);
+            IngameManager.Instance.GameOver("有个发烫的罐子烧坏了，下次可以先收集它，或用降温道具帮忙");
         }
 
 
@@ -486,161 +474,52 @@ namespace ClawbearGames
         /// <returns></returns>
         private IEnumerator CRMoveUp()
         {
-            Vector3 originalScale = transform.localScale;
-            Vector3 originalPos = transform.position;
-
-            //Squash down (0.3s) ---
-            Vector3 squashedScale = new Vector3(originalScale.x * 1.5f, originalScale.y * 0.7f, originalScale.z * 1.5f);
-            float elapsed = 0f;
-            float scaleDuration = 0.1f;
-            while (elapsed < scaleDuration)
-            {
-                elapsed += Time.deltaTime;
-                float t = Mathf.SmoothStep(0f, 1f, elapsed / scaleDuration);
-                transform.localScale = Vector3.Lerp(originalScale, squashedScale, t);
-                yield return null;
-            }
-            transform.localScale = squashedScale;
-
-            //Move up & restore scale (0.5s) ---
-            Vector3 raisedPos = originalPos + Vector3.up * 3f;
-            elapsed = 0f;
-            float moveUpDuration = 0.3f;
-            while (elapsed < moveUpDuration)
-            {
-                elapsed += Time.deltaTime;
-                float t = Mathf.SmoothStep(0f, 1f, elapsed / moveUpDuration);
-                transform.localScale = Vector3.Lerp(squashedScale, originalScale, t);
-                transform.position = Vector3.Lerp(originalPos, raisedPos, t);
-                yield return null;
-            }
-            transform.localScale = originalScale;
-            transform.position = raisedPos;
-
-            //Close the top
-            topMeshRenderer.gameObject.SetActive(true);
-            Vector3 topPos = topMeshRenderer.transform.localPosition;
-            Vector3 targetPos = new Vector3(0f, 1f, 0f);
-            elapsed = 0;
-            float duration = 0.2f;
+            Vector3 start = transform.position;
+            Vector3 startScale = transform.localScale;
+            if (tileController != null) { tileController.PotController = null; tileController = null; }
+            // Account for completion immediately; the short departure is presentation only.
+            ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.PotCleared);
+            ViewManager.Instance.IngameViewController.CreateCoinEffect(start, IngameManager.Instance.CoinReward);
+            EffectManager.Instance.PlayPotCompletedEffect(start + Vector3.up * .3f);
+            IngameManager.Instance.OnPotCompleted();
+            float elapsed = 0;
+            const float duration = .32f;
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
-                float t = elapsed / duration;
-                float curveT = animCurve.Evaluate(t);
-                topMeshRenderer.transform.localPosition = Vector3.Lerp(topPos, targetPos, curveT);
+                float t = Mathf.Clamp01(elapsed / duration);
+                float eased = 1 - (1 - t) * (1 - t);
+                transform.position = start + Vector3.up * (.85f * eased);
+                transform.localScale = Vector3.Lerp(startScale, originalScale * .92f, eased);
+                if (jarView != null) jarView.SetOpacity(1 - t * t);
                 yield return null;
             }
-
-            tileController.PotController = null;
             topMeshRenderer.gameObject.SetActive(false);
-            ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.PotCleared);
-            ViewManager.Instance.IngameViewController.CreateCoinEffect(transform.position, IngameManager.Instance.CoinReward);
-            EffectManager.Instance.PlayPotCompletedEffect(transform.position + Vector3.up * 0.3f);
-            IngameManager.Instance.OnPotCompleted();
             gameObject.SetActive(false);
         }
 
-
-
-
-        /// <summary>
-        /// Shake this pot.
-        /// </summary>
-        /// <param name="delay"></param>
         public void Shake(float delay)
         {
-            StartCoroutine(CRShake(delay));
+            if (inTransit || IsFilled) return;
+            if (shaking) transform.localPosition = shakeOrigin;
+            shakeOrigin = transform.localPosition;
+            shakeStart = Time.time + Mathf.Max(0, delay);
+            shaking = true;
         }
 
-
-        /// <summary>
-        /// Coroutine shake this pot.
-        /// </summary>
-        /// <param name="delay"></param>
-        /// <returns></returns>
-        private IEnumerator CRShake(float delay)
+        public void Bounce(float delay = 0)
         {
-            yield return new WaitForSeconds(delay);
-            float shakeDuration = 1f;
-            float shakeAmount = 0.1f;
-            float decreaseFactor = 0.1f;
-            Vector3 originalPos = transform.localPosition;
-            float shakeDurationTemp = shakeDuration;
-            while (shakeDurationTemp > 0)
-            {
-                Vector3 newPos = originalPos + UnityEngine.Random.insideUnitSphere * shakeAmount;
-                newPos.y = originalPos.y;
-                transform.localPosition = newPos;
-                shakeDurationTemp -= Time.deltaTime * decreaseFactor;
-                yield return null;
-            }
-            transform.localPosition = originalPos;
+            if (IsFilled || inTransit) return;
+            if (bounceAmplitude <= .0001f) bouncePhase = 0;
+            bounceAmplitude = Mathf.Min(.04f, bounceAmplitude + .012f);
+            bounceAfter = Time.time + Mathf.Max(0, delay);
         }
 
-
-
-        /// <summary>
-        /// Bounce this pot.
-        /// </summary>
-        /// <param name="delay"></param>
-        public void Bounce(float delay = 0f)
+        private void ResetFeedback()
         {
-            if (bounceCoroutine != null)
-                StopCoroutine(bounceCoroutine);
-
-            // Snap back before restarting so animation always starts clean
-            transform.localScale = originalScale;
-
-            bounceCoroutine = StartCoroutine(CRBounce(delay));
-        }
-
-
-        /// <summary>
-        /// Coroutine bounce this pot.
-        /// </summary>
-        /// <param name="delay"></param>
-        /// <returns></returns>
-        private IEnumerator CRBounce(float delay = 0f)
-        {
-            yield return new WaitForSeconds(delay);
-
-            float squashDuration = 0.08f;
-            float stretchDuration = 0.12f;
-            float settleDuration = 0.07f;
-
-            Vector3 squashScale = new Vector3(originalScale.x * 1.3f, originalScale.y * 0.6f, originalScale.z * 1.3f);
-            Vector3 stretchScale = new Vector3(originalScale.x * 0.85f, originalScale.y * 1.25f, originalScale.z * 0.85f);
-
-            // Squash
-            float t = 0f;
-            while (t < 1f)
-            {
-                t += Time.deltaTime / squashDuration;
-                float s = Mathf.SmoothStep(0f, 1f, t);
-                transform.localScale = Vector3.Lerp(originalScale, squashScale, s);
-                yield return null;
-            }
-
-            // Stretch up
-            t = 0f;
-            while (t < 1f)
-            {
-                t += Time.deltaTime / stretchDuration;
-                float s = Mathf.SmoothStep(0f, 1f, t);
-                transform.localScale = Vector3.Lerp(squashScale, stretchScale, s);
-                yield return null;
-            }
-
-            // Settle
-            t = 0f;
-            while (t < 1f)
-            {
-                t += Time.deltaTime / settleDuration;
-                transform.localScale = Vector3.Lerp(stretchScale, originalScale, Mathf.SmoothStep(0f, 1f, t));
-                yield return null;
-            }
-
+            if (shaking) transform.localPosition = shakeOrigin;
+            shaking = false;
+            bounceAmplitude = 0;
             transform.localScale = originalScale;
         }
     }

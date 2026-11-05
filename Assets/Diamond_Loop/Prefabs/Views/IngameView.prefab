@@ -1438,6 +1438,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   viewType: 5
+  themeArt: {fileID: 11400000, guid: e6c22129ed690464694e51dea40ce9db, type: 2}
   viewTransform: {fileID: 1060811371814899819}
   topPanelTrans: {fileID: 6874637928771519337}
   coinTargetTrans: {fileID: 2548222596978404346}

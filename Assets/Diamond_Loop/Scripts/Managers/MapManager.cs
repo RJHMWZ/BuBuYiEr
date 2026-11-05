@@ -8,6 +8,7 @@ namespace ClawbearGames
     {
         [Header("MapManager Configuration")]
         [SerializeField] private int totalLevels = 100;
+        public int TotalLevels => totalLevels;
         [SerializeField] private int levelItemPerMap = 5;
 
         [Header("MapManager References")]
@@ -33,6 +34,19 @@ namespace ClawbearGames
         {
             Application.targetFrameRate = 60;
             ViewManager.Instance.OnShowView(ViewType.LEVEL_VIEW);
+            if (ViewManager.Instance.LevelViewController.UsesBearTheme)
+            {
+                // The illustrated uGUI route replaces the template's 3D map and physics input.
+                Camera camera = Camera.main;
+                if (camera != null)
+                {
+                    camera.clearFlags = CameraClearFlags.SolidColor;
+                    camera.backgroundColor = BearGameTheme.Cream;
+                    camera.cullingMask = 0;
+                }
+                enabled = false;
+                return;
+            }
             InputManager.Initialize();
 
             //Create the map items

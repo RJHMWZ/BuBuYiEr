@@ -1104,6 +1104,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   viewType: 8
+  themeArt: {fileID: 11400000, guid: e6c22129ed690464694e51dea40ce9db, type: 2}
   lockedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   unlockedColor: {r: 1, g: 1, b: 1, a: 1}
   confirmPanel: {fileID: 1859934546599253969}
