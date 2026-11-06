@@ -16,30 +16,6 @@ namespace ClawbearGames
 
         [SerializeField] private AudioClip collectCoin = null;
         public AudioClip CollectCoin => collectCoin;
-        [SerializeField] private AudioClip selectPot = null;
-        public AudioClip SelectPot => selectPot;
-        [SerializeField] private AudioClip potJumped = null;
-        public AudioClip PotJumped => potJumped;
-        [SerializeField] private AudioClip potCleared = null;
-        public AudioClip PotCleared => potCleared;
-        [SerializeField] private AudioClip cubeJumped = null;
-        public AudioClip CubeJumped => cubeJumped;
-
-
-        [SerializeField] private AudioClip frozenBreak = null;
-        public AudioClip FrozenBreak => frozenBreak;
-        [SerializeField] private AudioClip hammerSmash = null;
-        public AudioClip HammerSmash => hammerSmash;
-        [SerializeField] private AudioClip potUnlocked = null;
-        public AudioClip PotUnlocked => potUnlocked;
-        [SerializeField] private AudioClip potBurned = null;
-        public AudioClip PotBurned => potBurned;
-        [SerializeField] private AudioClip potCoolOff = null;
-        public AudioClip PotCoolOff => potCoolOff;
-        [SerializeField] private AudioClip magnetPull = null;
-        public AudioClip MagnetPull => magnetPull;
-
-
         [SerializeField] private AudioClip countStar = null;
         public AudioClip CountStar => countStar;
 

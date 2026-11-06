@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -126,7 +126,7 @@ namespace ClawbearGames
                     ServicesManager.Instance.NotificationManager.SetNotificationsEnabled(!ServicesManager.Instance.NotificationManager.NotificationsEnabled);
                     Refresh(); break;
                 case "language": Message("语言", "当前界面语言：简体中文\n更多语言将在后续版本开放。"); break;
-                case "help": Message("游戏帮助", "点击罐子，将它放到传送带。\n收集相同颜色的方块，装满罐子。\n合理安排空位，完成关卡目标。\n\n每日奖励每隔 24 小时可领取一次。"); break;
+                case "help": Message("游戏帮助", "点击糖砖，打碎后获得本关蜂蜜。\n购买六种小球，让它们自动弹跳。\n升级小球威力，清空糖砖即可通关。\n蜂蜜每关重新准备，通关金币存入钱包。\n\n每日奖励每隔 24 小时可领取一次。"); break;
                 case "about": Message("关于我们", "BuBuYiEr\n和小熊一起，收藏甜甜的每一天。\n\n版本 " + Application.version); break;
                 case "privacy": OpenLink(art.privacyUrl, "隐私政策", "隐私政策暂未发布。"); break;
                 case "support": OpenLink(art.supportUrl, "联系客服", "在线客服暂未开放。"); break;
@@ -162,7 +162,7 @@ namespace ClawbearGames
             levelText.text = "Lv. " + playableLevel;
             if (soloPlayLabel != null)
                 soloPlayLabel.text = PlayerDataHandler.IsWatchedTutorial()
-                    ? (playableLevel < progressLevel ? "重温第 " : "继续第 ") + playableLevel + " 关" : "开始收集";
+                    ? (playableLevel < progressLevel ? "重温第 " : "继续第 ") + playableLevel + " 关" : "开始打糖砖";
             int cooldown = ServicesManager.Instance.DailyRewardManager.TimeRemainsTillNextReward();
             Transform rewardNotice = pages[0].transform.Find("Navigation/DailyReward/RewardNotice");
             if (rewardNotice != null) rewardNotice.gameObject.SetActive(cooldown == 0);

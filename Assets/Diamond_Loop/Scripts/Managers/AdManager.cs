@@ -82,15 +82,9 @@ namespace ClawbearGames
                         int collectedCoins = ServicesManager.Instance.CoinManager.CollectedCoins;
                         ServicesManager.Instance.CoinManager.AddCollectedCoins(collectedCoins, delayTimeWhenRewardingCoins);
                     }
-                    else if (rewardedAdTarget == RewardedAdTarget.REVIVE_PLAYER)
-                    {
-                        IngameManager.Instance.SetContinueGame(); //Revive 
-                    }
+
                 }
-                else if (rewardedAdTarget == RewardedAdTarget.REVIVE_PLAYER)
-                {
-                    ViewManager.Instance.ReviveViewController.OnRecoveryAdClosed(false);
-                }
+
             }
         }
 

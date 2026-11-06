@@ -1,4 +1,4 @@
-# 情侣小熊主菜单
+﻿# 情侣小熊主菜单
 
 主菜单使用 `Assets/BuBuYiEr/UI/Art/SceneArt.png` 中已切好的命名精灵。标题、双熊、窗户、窗帘、盆栽、桌面、糖果、按钮、图标和草地均为独立 Image，可直接修改 RectTransform；顶部数值和导航文字为独立 Text。面板与桌面使用九宫格缩放，CanvasScaler 使用 Scale With Screen Size（1024×1536、按宽度匹配）。设置页使用 `SettingArt.png`，每日奖励使用 `DailyArt.png`；共用元素直接引用 SettingArt 和 SceneArt。
 
@@ -26,7 +26,7 @@ Home 场景已移除旧 Environment、传送带、立柱、边框、Background �
 
 ## 已接入的行为
 
-- **开始游戏**：进入原有 Level 选关场景，继续使用现有玩法。
+- **开始游戏**：进入 Level 选关场景，游玩新的糖果打砖块。
 - **顶部金币与关卡**：显示实际存档；参考图上的 3726 和 Lv.2 不会写进玩家存档。
 - **每日奖励**：沿用模板的领取序号及 24 小时冷却，禁止重复领取。奖励按照参考图为金币100、爱心3、四叶草1、小花5、装饰券1、金币300、糖果罐1。
 - **图鉴故事**：可选章节、查看故事，按当前关卡解锁（1、5、10、15、20、25关）。其他表情和动画页目前提供主题空状态，等待加入对应内容素材。
@@ -50,6 +50,8 @@ Home 场景已移除旧 Environment、传送带、立柱、边框、Background �
 主菜单设计尺寸为 1024×1536，其他页面为 941×1672。主菜单使用顶部、居中和底部锚点分配各区域间距，并适配安全区域；角色、图标和按钮保持各自比例，桌面和面板使用九宫格伸缩。横屏使用居中的完整竖屏界面。
 
 动态中文采用 [Google Fonts 收录的站酷快乐体](https://github.com/google/fonts/tree/main/ofl/zcoolkuaile)，数字采用 [Baloo 2](https://github.com/google/fonts/tree/main/ofl/baloo2) 的 700 字重静态实例（实例字体名为 BuBu Menu Round）。两份字体的 OFL 许可文件随资源保存在 `Assets/BuBuYiEr/UI/Fonts/`。原图内的标题、角色和装饰保留原始像素。
+
+当前关内玩法已替换为糖果打砖块，详见 [糖果打砖块玩法说明](糖果打砖块玩法说明.md)。
 
 界面入口代码为 `BearHomeMenuController.cs`，原生控件和布局由 `BearMenuFactory.cs` 生成。原有调试面板和自动打关仍独立使用。
 

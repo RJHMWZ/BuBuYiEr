@@ -1,4 +1,4 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+﻿#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -20,7 +20,7 @@ namespace ClawbearGames
         private GameObject panel, launcher, confirmation;
         private GameObject[] pages;
         private Text summary, status, inventory, logText, confirmationText, autoPlayStatus, launcherText;
-        private InputField levelInput, coinsInput, boostsInput;
+        private InputField levelInput, coinsInput;
         private ScrollRect scroll;
         private EventSystem ownedEventSystem;
         private Font font;
@@ -48,7 +48,7 @@ namespace ClawbearGames
                 GameDebugService.SetPanelVisible(false);
             if (panel == null) return;
             panel.SetActive(GameDebugService.PanelVisible);
-            launcher.SetActive(!GameDebugService.PanelVisible);
+            launcher.SetActive(!GameDebugService.PanelVisible && GameDebugService.IsPreviewLevel);
             Rect safe = Screen.safeArea;
             if (Screen.width > 0 && Screen.height > 0)
             {
@@ -111,12 +111,19 @@ namespace ClawbearGames
             Button launch = Button(safeRoot, "调试 F1", () => GameDebugService.SetPanelVisible(true));
             launcher = launch.gameObject;
             RectTransform launchRect = (RectTransform)launch.transform;
-            launchRect.anchorMin = launchRect.anchorMax = new Vector2(1, 1);
-            launchRect.pivot = new Vector2(1, 1);
-            launchRect.anchoredPosition = new Vector2(-16, -16);
+            launchRect.anchorMin = launchRect.anchorMax = new Vector2(.5f, 1);
+            launchRect.pivot = new Vector2(.5f, 1);
+            launchRect.anchoredPosition = new Vector2(0, -2);
             launchRect.sizeDelta = new Vector2(148, 64);
-            launch.image.color = accent;
+            launch.image.color = Color.clear;
             launcherText = launch.GetComponentInChildren<Text>();
+            launcherText.fontSize = 16;
+            launcherText.rectTransform.anchorMin = new Vector2(0,1);
+            launcherText.rectTransform.anchorMax = new Vector2(1,1);
+            launcherText.rectTransform.pivot = new Vector2(.5f,1);
+            launcherText.rectTransform.sizeDelta = new Vector2(0,22);
+            launcherText.rectTransform.anchoredPosition = Vector2.zero;
+            launcherText.color = new Color32(135, 101, 72, 255);
 
             RectTransform overlay = Rect("Debug Overlay", safeRoot);
             panel = overlay.gameObject;
@@ -226,8 +233,6 @@ namespace ClawbearGames
             inventory = Label(page, "", 22, 120);
             coinsInput = Field(page, "目标金币数量", "10000");
             Button(page, "设置金币", () => Parse(coinsInput, n => GameDebugService.SetCoins(n)));
-            boostsInput = Field(page, "每种道具增加数量", "10");
-            Button(page, "五种道具各增加", () => Parse(boostsInput, n => GameDebugService.AddAllBoosts(n)));
             Button(page, "备份当前存档", () =>
             {
                 if (GameDebugService.HasBackup) Confirm("将覆盖已有备份，确认保存当前存档？", () => GameDebugService.BackupPlayerData());
@@ -265,8 +270,7 @@ namespace ClawbearGames
             string level = game != null ? game.CurrentLevel.ToString() : "—";
             summary.text = $"场景 {SceneManager.GetActiveScene().name}  ·  当前关卡 {level}  ·  存档关卡 {data.CurrentLevel}\n" +
                 $"{(GameDebugService.IsPreviewLevel ? "试玩模式" : "正常模式")}  ·  {1f / Mathf.Max(0.001f, frameTime):0} FPS  ·  {GameDebugService.GameSpeed:0.##}x  ·  关卡数 {GameDebugService.LevelNumbers.Count}";
-            inventory.text = $"金币 {data.TotalCoins}  ·  备份 {(GameDebugService.HasBackup ? "已有" : "暂无")}\n" +
-                $"槽位 {data.SlotCount} / 磁铁 {data.MagnetCount} / 锤子 {data.HammerCount}\n钥匙 {data.KeyCount} / 冷却 {data.CoolerCount}";
+            inventory.text = $"金币 {data.TotalCoins}  ·  备份 {(GameDebugService.HasBackup ? "已有" : "暂无")}\n关内蜂蜜独立结算，用于购买和升级小球";
             status.text = GameDebugService.Status;
             autoPlayStatus.text = GameDebugService.AutoPlayStatus;
             launcherText.text = GameDebugService.IsAutoPlaying ? "自动中 · F1" : "调试 F1";

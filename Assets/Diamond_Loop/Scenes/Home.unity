@@ -1304,16 +1304,6 @@ MonoBehaviour:
   musicSource: {fileID: 1749731984953000047}
   button: {fileID: 8300000, guid: b8edc94c7a8cf8f45a7b38bba9c188b2, type: 3}
   collectCoin: {fileID: 8300000, guid: a5e399079d250364fbac25a760bfa71d, type: 3}
-  selectPot: {fileID: 8300000, guid: 8ad49c9b33d1615479e6aa9d845c637e, type: 3}
-  potJumped: {fileID: 8300000, guid: 30297b354e3cb0f459cf9f34065c1668, type: 3}
-  potCleared: {fileID: 8300000, guid: b350ede3556eabc4eac512c51ebbaabb, type: 3}
-  cubeJumped: {fileID: 8300000, guid: 7c8b74b57cf288e469576609671d7a35, type: 3}
-  frozenBreak: {fileID: 8300000, guid: ed9e30043695a694fb736e7ef328b0e0, type: 3}
-  hammerSmash: {fileID: 8300000, guid: efc709f0b52b1d944b2e5f8dc32e7c1b, type: 3}
-  potUnlocked: {fileID: 8300000, guid: e01a3350e047b4b419791962b5e16486, type: 3}
-  potBurned: {fileID: 8300000, guid: 19e6d75cf781c0e4e90f29dd8a972c9c, type: 3}
-  potCoolOff: {fileID: 8300000, guid: bd081b5d95bd9ab4ca8c38a9df3aabdc, type: 3}
-  magnetPull: {fileID: 8300000, guid: 2cf7ffa9f22519d47be1cb5b48cdd34e, type: 3}
   countStar: {fileID: 8300000, guid: 3cbfea5eda5c2d2489ad740de8c0304a, type: 3}
   levelCompleted: {fileID: 8300000, guid: 4049d9076beb92342974aefd9a67009e, type: 3}
   levelFailed: {fileID: 8300000, guid: 6efcc80d36020c94eb649cb2e7f57289, type: 3}
@@ -1505,7 +1495,6 @@ MonoBehaviour:
     type: 3}
   ingameViewControllerPrefab: {fileID: 1060811371814899816, guid: 23dcb463f974a6f468112b6d0e504982,
     type: 3}
-  reviveViewControllerPrefab: {fileID: 5484638784411061218, guid: f543d79968c6b37489045dd4721710e3,
     type: 3}
   endGameViewControllerPrefab: {fileID: 2478406303885569900, guid: 93288f3f429925341bda443a836cf848,
     type: 3}

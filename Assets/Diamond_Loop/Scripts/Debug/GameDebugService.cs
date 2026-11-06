@@ -1,4 +1,4 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+﻿#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -118,7 +118,7 @@ namespace ClawbearGames
         }
 
         private static void ApplyTimeScale() => Time.timeScale = PanelVisible ||
-            (IngameManager.Instance != null && (IngameManager.Instance.IsPaused || IngameManager.Instance.IsRecoverySuspended)) ? 0f : GameSpeed;
+            (IngameManager.Instance != null && IngameManager.Instance.IsPaused) ? 0f : GameSpeed;
 
         public static bool JumpToLevel(int number)
             => LoadPreviewLevel(number, false);
@@ -139,8 +139,6 @@ namespace ClawbearGames
             if (!CanFinishLevel || autoPlayer == null || IngameManager.Instance.DebugLevelData == null)
                 return Report(false, "请先进入关卡，再启动自动打关");
             if (!PlayerDataHandler.IsWatchedTutorial()) return Report(false, "请先完成引导，或点击“跳过引导并重试”");
-            if (ViewManager.Instance.IngameViewController.MessagePanel.gameObject.activeSelf)
-                return Report(false, "请先关闭道具选取，再启动自动打关");
             EnsureAutomaticBackup();
             levelOverride = IngameManager.Instance.DebugLevelData;
             autoPlayer.Begin(IngameManager.Instance, continuous);
@@ -315,27 +313,6 @@ namespace ClawbearGames
             if (ServicesManager.Instance == null || ServicesManager.Instance.CoinManager == null) return;
             ServicesManager.Instance.CoinManager.StopAllCoroutines();
             ServicesManager.Instance.CoinManager.SetCollectedCoins(0);
-        }
-
-        public static bool AddAllBoosts(int amount)
-        {
-            PlayerData data = GetPlayerData();
-            if (IsLoading || amount < 1 || amount > 9999 ||
-                (long)data.SlotCount + amount > 99999 || (long)data.MagnetCount + amount > 99999 ||
-                (long)data.HammerCount + amount > 99999 || (long)data.KeyCount + amount > 99999 ||
-                (long)data.CoolerCount + amount > 99999) return Report(false, "道具增量应为 1～9999，单项总量不能超过 99999");
-            EnsureAutomaticBackup();
-            data.SlotCount += amount;
-            data.MagnetCount += amount;
-            data.HammerCount += amount;
-            data.KeyCount += amount;
-            data.CoolerCount += amount;
-            PlayerDataHandler.SaveData(data);
-            PlayerPrefs.Save();
-            if (ViewManager.Instance != null && ViewManager.Instance.IngameViewController != null)
-                foreach (BoostButtonController button in ViewManager.Instance.IngameViewController.GetComponentsInChildren<BoostButtonController>(true))
-                    button.UpdateCurrentAmount();
-            return Report(true, $"五种道具各增加 {amount}（解锁等级仍按关卡配置）");
         }
 
         private static void OnLog(string message, string stackTrace, LogType type)

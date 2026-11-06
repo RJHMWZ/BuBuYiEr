@@ -8,7 +8,7 @@ namespace ClawbearGames
     {
         [Header("MapManager Configuration")]
         [SerializeField] private int totalLevels = 100;
-        public int TotalLevels => totalLevels;
+        public int TotalLevels => Resources.LoadAll<LevelData>("Levels").Length;
         [SerializeField] private int levelItemPerMap = 5;
 
         [Header("MapManager References")]

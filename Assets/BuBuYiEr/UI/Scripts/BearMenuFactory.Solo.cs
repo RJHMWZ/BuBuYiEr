@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace ClawbearGames
@@ -18,7 +18,7 @@ namespace ClawbearGames
                 if (artwork != null) artwork.gameObject.SetActive(false);
                 if (legacy != null) legacy.gameObject.SetActive(false);
                 BearMenuShape paper = Shape(play, "SoloPlay", 187, 0, 650, 190, 90, Gold, new Color32(255, 204, 62, 255), 8);
-                menu.soloPlayLabel = Label(menu, paper.transform, "Caption", "开始收集", 20, 0, 610, 190, 61);
+                menu.soloPlayLabel = Label(menu, paper.transform, "Caption", "开始打糖砖", 20, 0, 610, 190, 61);
                 Hotspot(paper.transform, "Start", 0, 0, 650, 190, "play");
             }
             else menu.soloPlayLabel = solo.GetComponentInChildren<Text>();

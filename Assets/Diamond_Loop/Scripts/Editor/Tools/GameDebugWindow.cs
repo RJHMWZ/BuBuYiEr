@@ -1,4 +1,4 @@
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -11,7 +11,7 @@ namespace ClawbearGames
         private const string HomePath = "Assets/Diamond_Loop/Scenes/Home.unity";
         private const string StartSceneKey = "BuBuYiEr.Debug.PreviousStartScene";
         private const string RestoreStartKey = "BuBuYiEr.Debug.RestoreStartScene";
-        private int level = 1, coins = 10000, boosts = 10, stars = 3;
+        private int level = 1, coins = 10000, stars = 3;
         private Vector2 scroll;
 
         [MenuItem("Tools/BuBuYiEr/开发调试面板")]
@@ -79,7 +79,7 @@ namespace ClawbearGames
                 if (GUILayout.Button("下一关")) GameDebugService.LoadAdjacentLevel(1);
                 EditorGUILayout.EndHorizontal();
                 SpaceTitle("自动打关");
-                EditorGUILayout.HelpBox("自动选择可收集颜色并投放罐子；不会自动使用道具。失败或 45 秒无收集进展时停止。", MessageType.None);
+                EditorGUILayout.HelpBox("自动点击糖砖，使用本关蜂蜜购买并升级六种小球，通过真实碰撞完成关卡。", MessageType.None);
                 using (new EditorGUI.DisabledScope(GameDebugService.IsAutoPlaying || !GameDebugService.CanFinishLevel))
                 {
                     EditorGUILayout.BeginHorizontal();
@@ -109,17 +109,14 @@ namespace ClawbearGames
                 EditorGUILayout.EndHorizontal();
 
                 SpaceTitle("资源与存档");
-                EditorGUILayout.HelpBox("金币、道具、引导状态会保存。首次修改自动备份一份存档；恢复和重置会返回主页。", MessageType.None);
+                EditorGUILayout.HelpBox("金币和引导状态会保存。首次修改自动备份一份存档；恢复和重置会返回主页。", MessageType.None);
                 if (EditorApplication.isPlaying)
                 {
                     PlayerData data = GameDebugService.GetPlayerData();
                     EditorGUILayout.LabelField("金币", data.TotalCoins.ToString());
-                    EditorGUILayout.LabelField("槽位 / 磁铁 / 锤子 / 钥匙 / 冷却", $"{data.SlotCount} / {data.MagnetCount} / {data.HammerCount} / {data.KeyCount} / {data.CoolerCount}");
                 }
                 coins = EditorGUILayout.IntField("目标金币", coins);
                 if (GUILayout.Button("设置金币")) GameDebugService.SetCoins(coins);
-                boosts = EditorGUILayout.IntField("每种道具增加", boosts);
-                if (GUILayout.Button("增加五种道具")) GameDebugService.AddAllBoosts(boosts);
                 if (GUILayout.Button("备份当前存档"))
                     if (!GameDebugService.HasBackup || EditorUtility.DisplayDialog("覆盖备份", "将覆盖现有的一份备份。", "覆盖", "取消"))
                         GameDebugService.BackupPlayerData();

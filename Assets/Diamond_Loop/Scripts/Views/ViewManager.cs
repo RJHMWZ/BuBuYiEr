@@ -14,7 +14,6 @@ namespace ClawbearGames
         [SerializeField] private DailyRewardViewController dailyRewardViewControllerPrefab = null;
         [SerializeField] private LoadingViewController loadingViewControllerPrefab = null;
         [SerializeField] private IngameViewController ingameViewControllerPrefab = null;
-        [SerializeField] private ReviveViewController reviveViewControllerPrefab = null;
         [SerializeField] private EndGameViewController endGameViewControllerPrefab = null;
         [SerializeField] private LevelViewController levelViewControllerPrefab = null;
         [SerializeField] private EventSystem eventSystemPrefab = null;
@@ -25,7 +24,6 @@ namespace ClawbearGames
         public DailyRewardViewController DailyRewardViewController { private set; get; }
         public LoadingViewController LoadingViewController { private set; get; }
         public IngameViewController IngameViewController { private set; get; }
-        public ReviveViewController ReviveViewController { private set; get; }
         public EndGameViewController EndGameViewController { private set; get; }
         public LevelViewController LevelViewController { private set; get; }
 
@@ -90,13 +88,6 @@ namespace ClawbearGames
                     IngameViewController.transform.SetParent(transform, false);
                     IngameViewController.gameObject.name = ingameViewControllerPrefab.gameObject.name;
                     IngameViewController.OnClose();
-
-                    //Instantiate ReviveView
-                    ReviveViewController = Instantiate(reviveViewControllerPrefab, Vector3.zero, Quaternion.identity);
-                    ReviveViewController.transform.SetParent(transform, false);
-                    ReviveViewController.gameObject.name = reviveViewControllerPrefab.gameObject.name;
-                    ReviveViewController.OnClose();
-
 
                     //Instantiate EndGameView
                     EndGameViewController = Instantiate(endGameViewControllerPrefab, Vector3.zero, Quaternion.identity);
@@ -179,14 +170,6 @@ namespace ClawbearGames
                         IngameViewController.OnShow();
                         ActiveViewType = ViewType.INGAME_VIEW;
                         currentViewController = IngameViewController;
-                        return;
-                    }
-                case ViewType.REVIVE_VIEW:
-                    {
-                        ReviveViewController.gameObject.SetActive(true);
-                        ReviveViewController.OnShow();
-                        ActiveViewType = ViewType.REVIVE_VIEW;
-                        currentViewController = ReviveViewController;
                         return;
                     }
                 case ViewType.ENDGAME_VIEW:

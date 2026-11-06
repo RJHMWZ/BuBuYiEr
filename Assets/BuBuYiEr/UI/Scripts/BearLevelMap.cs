@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -156,7 +156,7 @@ namespace ClawbearGames
             RectTransform card = BearGameTheme.Paper(safe, "LevelInvitation", 128, 452, 768, 697, BearGameTheme.Cream, 64).rectTransform;
             BearGameTheme.Picture(art, card, "TitleRibbon", "Setting/TitleBg", 115, -40, 538, 138, true);
             confirmTitle = BearGameTheme.Label(art, card, "LevelTitle", "", 135, -17, 498, 88, 54);
-            BearGameTheme.Label(art, card, "Invitation", "一起装满甜甜的糖果罐吧", 74, 139, 620, 66, 35);
+            BearGameTheme.Label(art, card, "Invitation", "一起打碎糖砖，收集甜蜜吧", 74, 139, 620, 66, 35);
             confirmStars = new Image[3];
             for (int i = 0; i < 3; i++)
                 confirmStars[i] = BearGameTheme.Picture(art, card, "BestStar" + i, "IconStar", 222 + i * 115, 244, 94, 90);

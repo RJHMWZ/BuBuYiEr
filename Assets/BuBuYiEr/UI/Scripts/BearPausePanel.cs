@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -23,11 +23,18 @@ namespace ClawbearGames
             canvas.overrideSorting = true;
             canvas.sortingOrder = 200;
             root.gameObject.AddComponent<GraphicRaycaster>();
-            RectTransform frame = BearGameTheme.Frame(root, "PauseButtonSafeArea", true);
-            pauseButton = BearGameTheme.Button(art, frame, "PauseButton", "", 894, 26, 100, 96,
-                BearGameTheme.Pink, Toggle);
-            BearGameTheme.Paper(pauseButton.transform, "PauseLeftBar", 33, 27, 11, 42, BearGameTheme.Brown, 5).border = 0;
-            BearGameTheme.Paper(pauseButton.transform, "PauseRightBar", 57, 27, 11, 42, BearGameTheme.Brown, 5).border = 0;
+            RectTransform header = owner.transform.Find("CandyBreakoutUI/CandyRoom/Header") as RectTransform;
+            RectTransform frame = header != null ? header : BearGameTheme.Frame(root, "PauseButtonSafeArea");
+            pauseButton = BearGameTheme.Button(art, frame, "PauseButton", "", header != null ? 940 : 894,
+                header != null ? 0 : 26, 104, 104, new Color32(255,222,211,255), Toggle);
+            BearMenuShape face = pauseButton.GetComponent<BearMenuShape>();
+            face.border = 3; face.radius = 30;
+            face.bottomColor = new Color32(250,211,197,255);
+            Shadow shadow = pauseButton.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(.32f,.17f,.07f,.11f);
+            shadow.effectDistance = new Vector2(0,-5);
+            BearGameTheme.Paper(pauseButton.transform, "PauseLeftBar", 33, 31, 12, 42, BearGameTheme.Brown, 6).border = 0;
+            BearGameTheme.Paper(pauseButton.transform, "PauseRightBar", 59, 31, 12, 42, BearGameTheme.Brown, 6).border = 0;
 
             RectTransform dim = BearMenuFactory.Node(root, "PauseOverlay", 0, 0, 1024, 1536);
             BearMenuFactory.Stretch(dim);

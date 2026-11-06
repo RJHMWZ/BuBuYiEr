@@ -316,10 +316,10 @@ namespace ClawbearGames
             bool exist = false;
             foreach (StarData data in playerData.ListStarData)
             {
-                if (data.Level == level && star > data.Star)
+                if (data.Level == level)
                 {
                     exist = true;
-                    data.Star = star;
+                    data.Star = Mathf.Max(data.Star, star);
                     break;
                 }
             }

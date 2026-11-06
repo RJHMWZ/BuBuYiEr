@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
@@ -47,7 +47,7 @@ namespace ClawbearGames
             root.SetActive(true);
             primary.interactable = secondary.interactable = left.interactable = right.interactable = true;
             IngameManager game = IngameManager.Instance;
-            status.text = "第 " + game.CurrentLevel + " 关 · 已装满 " + game.CompletedPots + " / " + game.TotalPots + " 罐";
+            status.text = "第 " + game.CurrentLevel + " 关 · 已打碎 " + game.Board.Destroyed + " / " + game.Board.Total + " 块糖砖";
             reward.text = "本局收集 +" + ServicesManager.Instance.CoinManager.CollectedCoins + " 金币\n已自动存入小钱包";
             rightLabel.text = "返回小屋";
         }
@@ -57,7 +57,7 @@ namespace ClawbearGames
             ShowRound();
             IngameManager game = IngameManager.Instance;
             bool won = game.IngameState == IngameState.Ingame_CompleteLevel;
-            title.text = won ? "甜蜜收集完成" : "休息一下再出发";
+            title.text = won ? "糖砖清空啦" : "休息一下再出发";
             for (int i = 0; i < stars.Length; i++)
             {
                 stars[i].gameObject.SetActive(won);
@@ -65,7 +65,7 @@ namespace ClawbearGames
             }
             int unlocked = game.NewlyUnlockedStory;
             body.text = won ? unlocked >= 0 ? "解锁了一段新回忆：" + BearCollectionPanel.StoryTitles[unlocked] + "\n回图鉴看看，把这份甜蜜收藏起来。"
-                : game.HasNextLevel ? "每一罐糖果，都装着一点小小的快乐。\n准备好了，就去收集下一份甜蜜吧。" : "已经完成了目前全部关卡！\n可以回小屋看看故事，也可以重玩喜欢的关卡。"
+                : game.HasNextLevel ? "每一次弹跳，都装着一点小小的快乐。\n准备好了，就去挑战下一盘糖砖吧。" : "已经完成了目前全部关卡！\n可以回小屋看看故事，也可以重玩喜欢的关卡。"
                 : game.FailureReason;
             primaryLabel.text = won ? game.HasNextLevel ? "继续第 " + (game.CurrentLevel + 1) + " 关" : "回到小屋" : "重新开始";
             secondaryLabel.text = won ? unlocked >= 0 ? "查看新回忆" : "看看图鉴" : "选择关卡";
@@ -74,27 +74,6 @@ namespace ClawbearGames
             secondaryAction = won ? (UnityAction)view.OnClickCollectionButton : view.OnClickLevelsButton;
             leftAction = won ? (UnityAction)view.OnClickReplayButton : view.OnClickCollectionButton;
             rightAction = view.OnClickHomeButton;
-        }
-
-        public void ShowRecovery(ReviveViewController view)
-        {
-            ShowRound();
-            title.text = "再试一小会儿";
-            foreach (Image star in stars) star.gameObject.SetActive(false);
-            body.text = "已经装好的糖果奖励会保留。\n可以继续 " + IngameManager.RecoverySeconds + " 秒，也可以换个顺序重新开始。";
-            primaryLabel.text = IngameManager.Instance.FreeRecovery ? "免费继续 60 秒" : "看视频，继续 60 秒";
-            secondaryLabel.text = "重新开始";
-            leftLabel.text = "结束本局";
-            primaryAction = view.OnClickReviveButton;
-            secondaryAction = view.OnClickReplayButton;
-            leftAction = view.OnClickCloseButton;
-            rightAction = view.OnClickHomeButton;
-        }
-
-        public void SetAdPending(bool pending, string message = null)
-        {
-            primary.interactable = secondary.interactable = left.interactable = right.interactable = !pending;
-            if (message != null) body.text = message;
         }
 
         public void Hide()
