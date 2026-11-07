@@ -37,6 +37,7 @@ namespace ClawbearGames
             Picture(menu, footer, "RightFlowers", "BushR", 681, 0, 300, 140);
             Picture(menu, frame, "BackPaper", "TopUIBg", 25, 22, 225, 88).type = Image.Type.Sliced;
             Image back = Picture(menu, frame, "BackArrow", "Setting/IconArrow", 51, 42, 27, 42);
+            CenterImage(back);
             back.rectTransform.localEulerAngles = new Vector3(0, 0, 180);
             Label(menu, frame, "BackLabel", "返回", 95, 29, 126, 66, 43);
             Hotspot(frame, "Back", 25, 22, 225, 88, "page", 0);

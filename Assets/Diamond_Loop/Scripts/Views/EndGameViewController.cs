@@ -2,12 +2,20 @@
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ClawbearGames
 {
     public class EndGameViewController : BaseViewController
     {
+        private void OnDisable()
+        {
+            if (ServicesManager.Instance != null)
+            {
+                ServicesManager.Instance.CoinManager.TotalCoinChanged -= CoinManager_TotalCoinChanged;
+            }
+            StopAllCoroutines();
+        }
+
         private BearOutcomePanel outcome;
         [SerializeField] private CanvasGroup mainCanvasGroup = null;
         [SerializeField] private RectTransform topPanelTrans = null;
@@ -31,7 +39,12 @@ namespace ClawbearGames
         public CoinEffectController GetCoinEffectController()
         {
             //Find in the list
-            CoinEffectController coinEffect = listCoinEffectController.Where(a => !a.gameObject.activeSelf).FirstOrDefault();
+            CoinEffectController coinEffect = null;
+            for (int i = 0; i < listCoinEffectController.Count; i++)
+            {
+                var candidate = listCoinEffectController[i];
+                if (candidate != null && !candidate.gameObject.activeSelf) { coinEffect = candidate; break; }
+            }
 
             if (coinEffect == null)
             {

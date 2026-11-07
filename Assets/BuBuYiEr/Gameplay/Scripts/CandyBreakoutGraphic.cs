@@ -6,15 +6,23 @@ using UnityEngine.UI;
 namespace ClawbearGames
 {
     [RequireComponent(typeof(CanvasRenderer))]
-    public sealed class CandyBreakoutGraphic : MaskableGraphic, IPointerDownHandler, IDragHandler
+    public sealed class CandyBreakoutGraphic : MaskableGraphic, IPointerDownHandler, IBeginDragHandler, IDragHandler, IPointerUpHandler, IPointerExitHandler
     {
         public CandyBreakoutSimulation Board;
         public static readonly Color32[] CandyColors = {
             new Color32(247,211,124,255), new Color32(239,166,180,255),
             new Color32(166,192,234,255), new Color32(164,212,183,255),
             new Color32(201,163,140,255), new Color32(203,180,226,255) };
-        private float contentBottom = 440;
+        private int pressedPointer = int.MinValue;
+        private Vector2 pressPosition;
+        private CandyBreakoutSimulation pressBoard;
+        private CandyBreakoutSimulation.Brick pressedBrick;
         private float paintOpacity=1;
+        private bool painting;
+        private float paintScale;
+        private Rect paintBounds;
+        private static readonly Vector2[] roundedDirections = CreateRoundedDirections();
+        private static readonly Vector2[] circleDirections = CreateCircleDirections();
         private CandyBreakoutSimulation feedbackBoard;
         private struct DepartingBrick
         {
@@ -32,14 +40,23 @@ namespace ClawbearGames
         public void AdvanceFeedback(float delta)
         {
             if(delta<=0)return;
+            if(departing.Count>0)SetVerticesDirty();
             for(int i=departing.Count-1;i>=0;i--)
             {
                 var item=departing[i];item.Remaining-=delta;
                 if(item.Remaining<=0)departing.RemoveAt(i);else departing[i]=item;
             }
         }
+        public void ReleaseBoard()
+        {
+            CancelPress();
+            Board=feedbackBoard=null;
+            departing.Clear();
+            SetVerticesDirty();
+        }
         protected override void OnDisable()
         {
+            CancelPress();
             departing.Clear();
             paintOpacity=1;
             base.OnDisable();
@@ -47,41 +64,30 @@ namespace ClawbearGames
 
         public void FitPresentation()
         {
-            if(feedbackBoard!=Board){feedbackBoard=Board;departing.Clear();}
-            float bottom = 0;
-            if (Board != null)
-                foreach (var brick in Board.Bricks) bottom = Mathf.Max(bottom, brick.Bounds.yMax);
-            // One reversible presentation transform for bricks, balls, labels and input.
-            // Logical bounds and all simulation/collision data remain untouched.
-            contentBottom = Mathf.Clamp(bottom + 26, 240, 665);
+            if(feedbackBoard!=Board){feedbackBoard=Board;departing.Clear();CancelPress();}
             SetVerticesDirty();
         }
-        private float BandHeight
+        public float BoardScale => Mathf.Max(.001f, Mathf.Min(rectTransform.rect.width / CandyBreakoutSimulation.Width,
+            rectTransform.rect.height / CandyBreakoutSimulation.Height));
+        public Rect PlayBounds
         {
             get
             {
-                float height=rectTransform.rect.height;
-                bool boss=contentBottom>600;
-                return Mathf.Max(96,Mathf.Min(height * (boss ? .83f : .72f), height - (boss ? 172 : 212)));
+                Vector2 size = new Vector2(CandyBreakoutSimulation.Width, CandyBreakoutSimulation.Height) * BoardScale;
+                return new Rect(rectTransform.rect.center - size * .5f, size);
             }
         }
-        private float VisualY(float y)
+        // A single uniform transform preserves angles, circular contacts and speed everywhere.
+        public Vector2 ToLocalPoint(Vector2 p)
         {
-            float h = rectTransform.rect.height;
-            if (y <= 55) return y / 55 * 32;
-            return y <= contentBottom ? 32 + (y-55) / (contentBottom-55) * (BandHeight-32)
-                : BandHeight + (y - contentBottom) / (760 - contentBottom) * (h - BandHeight);
+            Rect bounds=painting?paintBounds:PlayBounds;
+            float scale=painting?paintScale:BoardScale;
+            return new Vector2(bounds.xMin+p.x*scale,bounds.yMax-p.y*scale);
         }
-        public Vector2 ToLocalPoint(Vector2 p) => new Vector2(
-            rectTransform.rect.xMin + p.x / 900 * rectTransform.rect.width,
-            rectTransform.rect.yMax - VisualY(p.y));
         public Vector2 ToBoardPoint(Vector2 local)
         {
-            Rect r = rectTransform.rect;
-            float y = r.yMax - local.y;
-            float logicalY = y <= 32 ? y / 32 * 55 : y <= BandHeight ? 55 + (y-32) / (BandHeight-32) * (contentBottom-55)
-                : contentBottom + (y - BandHeight) / (r.height - BandHeight) * (760 - contentBottom);
-            return new Vector2((local.x - r.xMin) / r.width * 900, logicalY);
+            Rect r = PlayBounds;
+            return new Vector2((local.x - r.xMin) / BoardScale, (r.yMax - local.y) / BoardScale);
         }
         public Rect VisualRect(Rect r)
         {
@@ -89,23 +95,77 @@ namespace ClawbearGames
             Vector2 bottom = ToLocalPoint(new Vector2(r.xMax, r.yMax));
             return new Rect(top.x, bottom.y, bottom.x - top.x, top.y - bottom.y);
         }
-        public void OnPointerDown(PointerEventData e) => Tap(e);
-        public void OnDrag(PointerEventData e) => Tap(e);
-        private void Tap(PointerEventData e)
+        public void OnPointerDown(PointerEventData e)
+        {
+            if (pressedPointer != int.MinValue || e.button != PointerEventData.InputButton.Left || !TryBoardPoint(e, out Vector2 point)) return;
+            foreach (var brick in Board.Bricks)
+            {
+                if (!brick.Alive || !brick.Bounds.Contains(point)) continue;
+                pressedPointer = e.pointerId;
+                pressPosition = e.position;
+                pressBoard = Board;
+                pressedBrick = brick;
+                break;
+            }
+        }
+        public void OnBeginDrag(PointerEventData e) => OnDrag(e);
+        public void OnDrag(PointerEventData e)
+        {
+            if (pressedPointer == e.pointerId) CancelPress();
+        }
+        public void OnPointerUp(PointerEventData e)
+        {
+            if (pressedPointer != e.pointerId) return;
+            var brick = pressedBrick;
+            var source = pressBoard;
+            Vector2 start = pressPosition;
+            CancelPress();
+            float threshold = EventSystem.current != null ? EventSystem.current.pixelDragThreshold : 10;
+            if (e.button != PointerEventData.InputButton.Left || e.dragging || (e.position - start).sqrMagnitude > threshold * threshold ||
+                source != Board || brick == null || !brick.Alive || !TryBoardPoint(e, out Vector2 point) || !brick.Bounds.Contains(point)) return;
+            Board.Click(point);
+        }
+        public void OnPointerExit(PointerEventData e) { if (pressedPointer == e.pointerId) CancelPress(); }
+        private void CancelPress()
+        {
+            pressedPointer = int.MinValue;
+            pressedBrick = null;
+            pressBoard = null;
+        }
+        private void Update() { if (pressedBrick != null && !CanAcceptInput()) CancelPress(); }
+        private void OnApplicationFocus(bool focused) { if (!focused) CancelPress(); }
+        private void OnApplicationPause(bool paused) { if (paused) CancelPress(); }
+        private bool CanAcceptInput()
         {
             IngameManager game = IngameManager.Instance;
-            if (game == null || !game.CanInteract || Board != game.Board) return;
+            if (game == null || !game.CanInteract || Board == null || Board != game.Board) return false;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (GameDebugService.IsBlockingInput) return;
+            if (GameDebugService.IsBlockingInput) return false;
 #endif
-            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, e.position, e.pressEventCamera, out Vector2 local))
-                Board.Click(ToBoardPoint(local));
+            return true;
+        }
+        private bool TryBoardPoint(PointerEventData e, out Vector2 point)
+        {
+            point = Vector2.zero;
+            if (!CanAcceptInput() || !RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, e.position, e.pressEventCamera, out Vector2 local) || !PlayBounds.Contains(local)) return false;
+            point = ToBoardPoint(local);
+            return true;
         }
         protected override void OnPopulateMesh(VertexHelper vh)
         {
             vh.Clear();
             if (Board == null) return;
+            paintScale=BoardScale;paintBounds=PlayBounds;painting=true;
+            try { DrawBoard(vh); }
+            finally { painting=false;paintOpacity=1; }
+        }
+        private void DrawBoard(VertexHelper vh)
+        {
             paintOpacity=1;
+            Rect play = paintBounds;
+            Rounded(vh, new Rect(play.x - 3, play.y - 3, play.width + 6, play.height + 6), 8,
+                new Color32(180,139,100,255), new Color32(180,139,100,255));
+            Rounded(vh, play, 6, new Color32(255,251,241,255), new Color32(255,243,220,255));
             foreach(var brick in Board.Bricks)
                 if(brick.Alive)DrawBrick(vh,brick,1,1);
             foreach(var item in departing)
@@ -116,18 +176,18 @@ namespace ClawbearGames
             paintOpacity=1;
             foreach (var ball in Board.Balls)
             {
-                Vector2 direction = ball.Velocity.normalized;
                 Color c = CandyColors[ball.Kind];
-                for (int i = 4; i > 0; i--)
-                    Circle(vh, ball.Position - direction * i * 9, 10 - i * 1.4f, new Color(c.r,c.g,c.b,.17f));
-                Circle(vh, ball.Position, 12.5f, BearGameTheme.Brown);
-                Circle(vh, ball.Position, 9.5f, c);
+                for (int i = ball.TrailCount - 1; i >= 0; i--)
+                    Circle(vh, ball.Trail[i], 8 - i * .6f, new Color(c.r,c.g,c.b,.22f * (1 - i / 8f)));
+                if (ball.Impact > 0) Circle(vh, ball.Position, 16, new Color(1,.75f,.25f,ball.Impact*.22f));
+                Circle(vh, ball.Position, CandyBreakoutSimulation.Radius, BearGameTheme.Brown);
+                Circle(vh, ball.Position, 8.5f, c);
                 Circle(vh, ball.Position + new Vector2(-3,-3), 2.7f, new Color(1,1,1,.9f));
             }
             foreach (var spark in Board.Sparks)
             {
-                Color c = spark.Color; c.a = spark.Life * 1.6f;
-                Circle(vh, spark.Position, 3.5f * spark.Life * 2, c);
+                Color c = spark.Color; c.a = Mathf.Clamp01(spark.Life * 4);
+                Circle(vh, spark.Position, 3.5f * Mathf.Clamp01(spark.Life * 5), c);
             }
         }
         private void DrawBrick(VertexHelper vh,CandyBreakoutSimulation.Brick brick,float scale,float opacity)
@@ -173,8 +233,7 @@ namespace ClawbearGames
                     corner < 2 ? r.yMax-radius : r.yMin+radius);
                 for (int i = 0; i <= segments; i++)
                 {
-                    float a = (corner * 90 + i * 90f / segments) * Mathf.Deg2Rad;
-                    Vector2 p = center + new Vector2(Mathf.Cos(a),Mathf.Sin(a)) * radius;
+                    Vector2 p = center + roundedDirections[corner*(segments+1)+i] * radius;
                     vh.AddVert(p,Color.Lerp(bottom,top,Mathf.InverseLerp(r.yMin,r.yMax,p.y)),Vector2.zero);
                 }
             }
@@ -188,15 +247,34 @@ namespace ClawbearGames
             vh.AddVert(center,color,Vector2.zero);
             for(int i=0;i<=20;i++)
             {
-                float a=i*Mathf.PI/10;
-                vh.AddVert(center+new Vector2(Mathf.Cos(a),Mathf.Sin(a))*radius,color,Vector2.zero);
+                vh.AddVert(center+circleDirections[i]*radius,color,Vector2.zero);
                 if(i>0) vh.AddTriangle(n,n+i,n+i+1);
             }
         }
         private void Circle(VertexHelper vh, Vector2 center, float radius, Color color)
         {
-            // Preserve a round candy silhouette while its centre follows the reversible board transform.
-            Dot(vh, ToLocalPoint(center), radius * rectTransform.rect.width / 900, color);
+            Dot(vh, ToLocalPoint(center), radius * (painting?paintScale:BoardScale), color);
+        }
+        private static Vector2[] CreateRoundedDirections()
+        {
+            const int segments=5;
+            var directions=new Vector2[4*(segments+1)];
+            for(int corner=0;corner<4;corner++)for(int i=0;i<=segments;i++)
+            {
+                float a=(corner*90+i*90f/segments)*Mathf.Deg2Rad;
+                directions[corner*(segments+1)+i]=new Vector2(Mathf.Cos(a),Mathf.Sin(a));
+            }
+            return directions;
+        }
+        private static Vector2[] CreateCircleDirections()
+        {
+            var directions=new Vector2[21];
+            for(int i=0;i<=20;i++)
+            {
+                float a=i*Mathf.PI/10;
+                directions[i]=new Vector2(Mathf.Cos(a),Mathf.Sin(a));
+            }
+            return directions;
         }
     }
 }

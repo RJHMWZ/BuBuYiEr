@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,6 +7,16 @@ namespace ClawbearGames
 {
     public class DailyRewardViewController : BaseViewController
     {
+        private void OnDisable()
+        {
+            if (ServicesManager.Instance != null)
+            {
+                ServicesManager.Instance.CoinManager.TotalCoinChanged -= CoinManager_TotalCoinChanged;
+                ServicesManager.Instance.DailyRewardManager.RewardsReset -= UpdateClaimedPanelOfAllItems;
+            }
+            StopAllCoroutines();
+        }
+
         [SerializeField] private RectTransform viewTransform = null;
         [SerializeField] private CanvasGroup canvasGroup = null;
         [SerializeField] private RectTransform itemsPanelTrans = null;
@@ -27,7 +36,12 @@ namespace ClawbearGames
         public CoinEffectController GetCoinEffectController()
         {
             //Find in the list
-            CoinEffectController coinEffect = listCoinEffectController.Where(a => !a.gameObject.activeSelf).FirstOrDefault();
+            CoinEffectController coinEffect = null;
+            for (int i = 0; i < listCoinEffectController.Count; i++)
+            {
+                var candidate = listCoinEffectController[i];
+                if (candidate != null && !candidate.gameObject.activeSelf) { coinEffect = candidate; break; }
+            }
 
             if (coinEffect == null)
             {
@@ -112,6 +126,8 @@ namespace ClawbearGames
 
         public override void OnShow()
         {
+            ServicesManager.Instance.DailyRewardManager.RewardsReset -= UpdateClaimedPanelOfAllItems;
+            ServicesManager.Instance.DailyRewardManager.RewardsReset += UpdateClaimedPanelOfAllItems;
             FadeInCanvasGroup(canvasGroup, 0.75f);
             totalCoinsText.text = ServicesManager.Instance.CoinManager.TotalCoins.ToString();
             ServicesManager.Instance.CoinManager.TotalCoinChanged += CoinManager_TotalCoinChanged;
@@ -143,6 +159,8 @@ namespace ClawbearGames
 
         public override void OnClose()
         {
+            if (ServicesManager.Instance != null)
+                ServicesManager.Instance.DailyRewardManager.RewardsReset -= UpdateClaimedPanelOfAllItems;
             canvasGroup.alpha = 0f;
             ServicesManager.Instance.CoinManager.TotalCoinChanged -= CoinManager_TotalCoinChanged;
             gameObject.SetActive(false);

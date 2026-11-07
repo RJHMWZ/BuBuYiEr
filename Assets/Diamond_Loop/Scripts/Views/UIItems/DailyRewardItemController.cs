@@ -13,12 +13,16 @@ namespace ClawbearGames
         [SerializeField] private RectTransform claimTarget = null;
         [SerializeField] private GameObject claimButton = null;
         [SerializeField] private GameObject claimedPanel = null;
+        private double displayedTime = double.NaN;
+        private void OnEnable() => displayedTime = double.NaN;
 
 
         public double TimeRemains
         {
             set
             {
+                if(displayedTime==value)return;
+                displayedTime=value;
                 if (value > 0)
                 {
                     claimButton.gameObject.SetActive(false);
@@ -42,6 +46,7 @@ namespace ClawbearGames
         /// <param name="rewardedCoins"></param>
         public void OnSetup(DayType dayType, int rewardedCoins)
         {
+            displayedTime = double.NaN;
             rewardDayTxt.text = ("DAY " + dayType.ToString().Split('_')[1]).ToUpper();
             rewardedCoinTxt.text = rewardedCoins.ToString();
             countdownText.gameObject.SetActive(false);

@@ -40,7 +40,8 @@ namespace ClawbearGames
                     Destroy(sceneHomeViewController.gameObject);
                 if (sceneEventSystem != null && sceneEventSystem.transform.parent != Instance.transform)
                     Destroy(sceneEventSystem.gameObject);
-                DestroyImmediate(gameObject);
+                gameObject.SetActive(false);
+                Destroy(gameObject);
             }
             else
             {
@@ -50,57 +51,14 @@ namespace ClawbearGames
                 //Instantiate the views
                 if (transform.childCount == 0)
                 {
-                    //Instantiate IAPView
-                    IAPViewController = Instantiate(iAPViewControllerPrefab, Vector3.zero, Quaternion.identity);
-                    IAPViewController.transform.SetParent(transform, false);
-                    IAPViewController.gameObject.name = iAPViewControllerPrefab.gameObject.name;
-                    IAPViewController.OnClose();
-
-                    //Instantiate HomeView
-                    HomeViewController = sceneHomeViewController != null ? sceneHomeViewController
-                        : Instantiate(homeViewControllerPrefab, Vector3.zero, Quaternion.identity);
-                    HomeViewController.transform.SetParent(transform, false);
-                    HomeViewController.gameObject.name = homeViewControllerPrefab.gameObject.name;
-                    HomeViewController.OnClose();
-
-                    //Instantiate LeaderboardView
-                    LeaderboardViewController = Instantiate(leaderboardViewControllerPrefab, Vector3.zero, Quaternion.identity);
-                    LeaderboardViewController.transform.SetParent(transform, false);
-                    LeaderboardViewController.gameObject.name = leaderboardViewControllerPrefab.gameObject.name;
-                    LeaderboardViewController.OnClose();
-
-
-                    //Instantiate DailyRewardView
-                    DailyRewardViewController = Instantiate(dailyRewardViewControllerPrefab, Vector3.zero, Quaternion.identity);
-                    DailyRewardViewController.transform.SetParent(transform, false);
-                    DailyRewardViewController.gameObject.name = dailyRewardViewControllerPrefab.gameObject.name;
-                    DailyRewardViewController.OnClose();
-
-
-                    //Instantiate LoadingView
-                    LoadingViewController = Instantiate(loadingViewControllerPrefab, Vector3.zero, Quaternion.identity);
-                    LoadingViewController.transform.SetParent(transform, false);
-                    LoadingViewController.gameObject.name = loadingViewControllerPrefab.gameObject.name;
-                    LoadingViewController.OnClose();
-
-                    //Instantiate IngameView
-                    IngameViewController = Instantiate(ingameViewControllerPrefab, Vector3.zero, Quaternion.identity);
-                    IngameViewController.transform.SetParent(transform, false);
-                    IngameViewController.gameObject.name = ingameViewControllerPrefab.gameObject.name;
-                    IngameViewController.OnClose();
-
-                    //Instantiate EndGameView
-                    EndGameViewController = Instantiate(endGameViewControllerPrefab, Vector3.zero, Quaternion.identity);
-                    EndGameViewController.transform.SetParent(transform, false);
-                    EndGameViewController.gameObject.name = endGameViewControllerPrefab.gameObject.name;
-                    EndGameViewController.OnClose();
-
-
-                    //Instantiate LevelView
-                    LevelViewController = Instantiate(levelViewControllerPrefab, Vector3.zero, Quaternion.identity);
-                    LevelViewController.transform.SetParent(transform, false);
-                    LevelViewController.gameObject.name = levelViewControllerPrefab.gameObject.name;
-                    LevelViewController.OnClose();
+                    IAPViewController = CreateView(iAPViewControllerPrefab);
+                    HomeViewController = CreateView(homeViewControllerPrefab, sceneHomeViewController);
+                    LeaderboardViewController = CreateView(leaderboardViewControllerPrefab);
+                    DailyRewardViewController = CreateView(dailyRewardViewControllerPrefab);
+                    LoadingViewController = CreateView(loadingViewControllerPrefab);
+                    IngameViewController = CreateView(ingameViewControllerPrefab);
+                    EndGameViewController = CreateView(endGameViewControllerPrefab);
+                    LevelViewController = CreateView(levelViewControllerPrefab);
 
                     //Instantiate EventSystem
                     EventSystem eventSystem = sceneEventSystem != null ? sceneEventSystem
@@ -108,6 +66,19 @@ namespace ClawbearGames
                     eventSystem.transform.SetParent(transform, false);
                 }
             }
+        }
+        private T CreateView<T>(T prefab, T sceneView = null) where T : BaseViewController
+        {
+            T view = sceneView != null ? sceneView : Instantiate(prefab, Vector3.zero, Quaternion.identity);
+            view.transform.SetParent(transform, false);
+            view.gameObject.name = prefab.gameObject.name;
+            view.OnClose();
+            return view;
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
         }
 
 
@@ -122,73 +93,24 @@ namespace ClawbearGames
                 currentViewController.OnClose();
             }
 
+            BaseViewController next;
             switch (viewType)
             {
-                case ViewType.IAP_VIEW:
-                    {
-                        IAPViewController.gameObject.SetActive(true);
-                        IAPViewController.OnShow();
-                        ActiveViewType = ViewType.IAP_VIEW;
-                        currentViewController = IAPViewController;
-                        return;
-                    }
-                case ViewType.HOME_VIEW:
-                    {
-                        HomeViewController.gameObject.SetActive(true);
-                        HomeViewController.OnShow();
-                        ActiveViewType = ViewType.HOME_VIEW;
-                        currentViewController = HomeViewController;
-                        return;
-                    }
-                case ViewType.LEADERBOARD_VIEW:
-                    {
-                        LeaderboardViewController.gameObject.SetActive(true);
-                        LeaderboardViewController.OnShow();
-                        ActiveViewType = ViewType.LEADERBOARD_VIEW;
-                        currentViewController = LeaderboardViewController;
-                        return;
-                    }
-                case ViewType.DAILY_REWARD_VIEW:
-                    {
-                        DailyRewardViewController.gameObject.SetActive(true);
-                        DailyRewardViewController.OnShow();
-                        ActiveViewType = ViewType.DAILY_REWARD_VIEW;
-                        currentViewController = DailyRewardViewController;
-                        return;
-                    }
-                case ViewType.LOADING_VIEW:
-                    {
-                        LoadingViewController.gameObject.SetActive(true);
-                        LoadingViewController.OnShow();
-                        ActiveViewType = ViewType.LOADING_VIEW;
-                        currentViewController = LoadingViewController;
-                        return;
-                    }
-                case ViewType.INGAME_VIEW:
-                    {
-                        IngameViewController.gameObject.SetActive(true);
-                        IngameViewController.OnShow();
-                        ActiveViewType = ViewType.INGAME_VIEW;
-                        currentViewController = IngameViewController;
-                        return;
-                    }
-                case ViewType.ENDGAME_VIEW:
-                    {
-                        EndGameViewController.gameObject.SetActive(true);
-                        EndGameViewController.OnShow();
-                        ActiveViewType = ViewType.ENDGAME_VIEW;
-                        currentViewController = EndGameViewController;
-                        return;
-                    }
-                case ViewType.LEVEL_VIEW:
-                    {
-                        LevelViewController.gameObject.SetActive(true);
-                        LevelViewController.OnShow();
-                        ActiveViewType = ViewType.LEVEL_VIEW;
-                        currentViewController = LevelViewController;
-                        return;
-                    }
+                case ViewType.IAP_VIEW: next = IAPViewController; break;
+                case ViewType.HOME_VIEW: next = HomeViewController; break;
+                case ViewType.LEADERBOARD_VIEW: next = LeaderboardViewController; break;
+                case ViewType.DAILY_REWARD_VIEW: next = DailyRewardViewController; break;
+                case ViewType.LOADING_VIEW: next = LoadingViewController; break;
+                case ViewType.INGAME_VIEW: next = IngameViewController; break;
+                case ViewType.ENDGAME_VIEW: next = EndGameViewController; break;
+                case ViewType.LEVEL_VIEW: next = LevelViewController; break;
+                default: return;
             }
+            if (next == null) return;
+            next.gameObject.SetActive(true);
+            next.OnShow();
+            ActiveViewType = viewType;
+            currentViewController = next;
         }
     }
 }

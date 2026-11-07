@@ -41,7 +41,7 @@ namespace ClawbearGames
         /// </summary>
         public static void Initialize()
         {
-            if (isInitialized)
+            if (isInitialized && EnhancedTouchSupport.enabled)
                 return;
 
             // Enable enhanced touch support for better multi-touch handling

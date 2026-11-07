@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -29,7 +28,12 @@ namespace ClawbearGames
         public IAPRewardItemController GetIAPRewardItemController()
         {
             //Find in the list
-            IAPRewardItemController rewardItem = listIAPRewardItem.Where(a => !a.gameObject.activeSelf).FirstOrDefault();
+            IAPRewardItemController rewardItem = null;
+            for (int i = 0; i < listIAPRewardItem.Count; i++)
+            {
+                var candidate = listIAPRewardItem[i];
+                if (candidate != null && !candidate.gameObject.activeSelf) { rewardItem = candidate; break; }
+            }
 
             if (rewardItem == null)
             {

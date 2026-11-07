@@ -31,162 +31,99 @@ namespace ClawbearGames
         public AudioClip Rewarded => rewarded;
 
 
+        private Coroutine musicFade;
+        private enum FadeEnd { KeepPlaying, Stop, Pause }
+
         private IEnumerator Start()
         {
             yield return null;
             UpdateVolumes();
         }
 
-
-
-        /// <summary>
-        /// Update the volume of sound and music based on data.
-        /// </summary>
         public void UpdateVolumes()
         {
-            soundSource.volume = PlayerDataHandler.GetSoundValue();
-            musicSource.volume = PlayerDataHandler.GetMusicValue();
+            if (soundSource != null) soundSource.volume = PlayerDataHandler.GetSoundValue();
+            if (musicSource != null) musicSource.volume = PlayerDataHandler.GetMusicValue();
         }
 
-        /// <summary>
-        /// Play one audio clip as sound.
-        /// </summary>
-        /// <param name="audioClip"></param>
         public void PlaySound(AudioClip audioClip)
         {
-            soundSource.PlayOneShot(audioClip);
+            if (soundSource != null && audioClip != null) soundSource.PlayOneShot(audioClip);
         }
 
-
-        /// <summary>
-        /// Plays the given sound clip as music clip (automatically loop).
-        /// The music will volume up from 0 to 0.3 with given increase volume time.
-        /// </summary>
-        /// <param name="audioClip"></param>
-        /// <param name="increaseVolumeTime"></param>
         public void PlayMusic(AudioClip audioClip, float increaseVolumeTime)
         {
+            if (musicSource == null || audioClip == null) return;
+            CancelFade();
             musicSource.clip = audioClip;
             musicSource.loop = true;
             musicSource.Play();
-            StartCoroutine(CRIncreaseVolume(increaseVolumeTime));
+            FadeMusic(0, PlayerDataHandler.GetMusicValue(), increaseVolumeTime, FadeEnd.KeepPlaying);
         }
 
-
-        /// <summary>
-        /// Coroutine increase volume from 0 to 0.3 with increasing time.
-        /// </summary>
-        /// <param name="increasingTime"></param>
-        /// <returns></returns>
-        private IEnumerator CRIncreaseVolume(float increasingTime)
-        {
-            musicSource.volume = 0f;
-            float value = PlayerDataHandler.GetMusicValue();
-            float t = 0;
-            while (t < increasingTime)
-            {
-                t += Time.deltaTime;
-                float factor = t / increasingTime;
-                musicSource.volume = Mathf.Lerp(0f, value, factor);
-                yield return null;
-            }
-        }
-
-
-        /// <summary>
-        /// Stop the current music with given decrease volume time.
-        /// </summary>
-        /// <param name="decreaseVolumeTime"></param>
         public void StopMusic(float decreaseVolumeTime)
         {
-            StartCoroutine(CRDecreaseVolume(decreaseVolumeTime));
+            if (musicSource != null) FadeMusic(musicSource.volume, 0, decreaseVolumeTime, FadeEnd.Stop);
         }
 
-
-        /// <summary>
-        /// Coroutine decrease volume from 0.3 to 0 with given decreasing time.
-        /// </summary>
-        /// <param name="decreasingTime"></param>
-        /// <returns></returns>
-        private IEnumerator CRDecreaseVolume(float decreasingTime)
-        {
-            float t = 0;
-            float currentVolume = musicSource.volume;
-            while (t < decreasingTime)
-            {
-                t += Time.deltaTime;
-                float factor = t / decreasingTime;
-                musicSource.volume = Mathf.Lerp(currentVolume, 0, factor);
-                yield return null;
-            }
-            musicSource.Stop();
-        }
-
-
-
-
-        /// <summary>
-        /// Pauses the music with given decrease volume time.
-        /// </summary>
-        /// <param name="decreaseVolumeTime"></param>
         public void PauseMusic(float decreaseVolumeTime)
         {
-            StartCoroutine(CRPauseMusic(decreaseVolumeTime));
+            if (musicSource != null) FadeMusic(musicSource.volume, 0, decreaseVolumeTime, FadeEnd.Pause);
         }
 
-
-        /// <summary>
-        /// Coroutine pause the music.
-        /// </summary>
-        /// <param name="decreasingTime"></param>
-        /// <returns></returns>
-        private IEnumerator CRPauseMusic(float decreasingTime)
-        {
-            float t = 0;
-            float currentVolume = musicSource.volume;
-            while (t < decreasingTime)
-            {
-                t += Time.deltaTime;
-                float factor = t / decreasingTime;
-                musicSource.volume = Mathf.Lerp(currentVolume, 0, factor);
-                yield return null;
-            }
-
-            musicSource.Pause();
-            musicSource.volume = currentVolume;
-        }
-
-
-
-        /// <summary>
-        /// Resumes the music with increase volume time.
-        /// </summary>
-        /// <param name="increaseVolumeTime"></param>
         public void ResumeMusic(float increaseVolumeTime)
         {
-            StartCoroutine(CRResumeMusic(increaseVolumeTime));
+            if (musicSource == null) return;
+            CancelFade();
+            musicSource.UnPause();
+            FadeMusic(0, PlayerDataHandler.GetMusicValue(), increaseVolumeTime, FadeEnd.KeepPlaying);
         }
 
-
-        /// <summary>
-        /// Coroutine resume the music.
-        /// </summary>
-        /// <param name="increasingTime"></param>
-        /// <returns></returns>
-        private IEnumerator CRResumeMusic(float increasingTime)
+        private void FadeMusic(float from, float to, float duration, FadeEnd end)
         {
-            musicSource.UnPause();
-            musicSource.volume = 0f;
-            float value = PlayerDataHandler.GetMusicValue();
-            float t = 0;
-            while (t < increasingTime)
+            // ?????????????????????????????
+            CancelFade();
+            if (duration <= 0)
             {
-                t += Time.deltaTime;
-                float factor = t / increasingTime;
-                musicSource.volume = Mathf.Lerp(0f, value, factor);
+                musicSource.volume = to;
+                FinishFade(end, from);
+                return;
+            }
+            musicFade = StartCoroutine(FadeVolume(from, to, duration, end));
+        }
+
+        private IEnumerator FadeVolume(float from, float to, float duration, FadeEnd end)
+        {
+            musicSource.volume = from;
+            float elapsed = 0;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                musicSource.volume = Mathf.Lerp(from, to, elapsed / duration);
                 yield return null;
+            }
+            musicSource.volume = to;
+            musicFade = null;
+            FinishFade(end, from);
+        }
+
+        private void FinishFade(FadeEnd end, float previousVolume)
+        {
+            if (end == FadeEnd.Stop) musicSource.Stop();
+            else if (end == FadeEnd.Pause)
+            {
+                musicSource.Pause();
+                musicSource.volume = previousVolume;
             }
         }
 
+        private void CancelFade()
+        {
+            if (musicFade == null) return;
+            StopCoroutine(musicFade);
+            musicFade = null;
+        }
+
+        private void OnDisable() => CancelFade();
     }
 }

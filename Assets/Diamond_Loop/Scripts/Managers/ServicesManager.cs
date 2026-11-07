@@ -28,13 +28,18 @@ namespace ClawbearGames
         {
             if (Instance)
             {
-                DestroyImmediate(gameObject);
+                gameObject.SetActive(false);
+                Destroy(gameObject);
             }
             else
             {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
             }
+        }
+        private void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
         }
     }
 }

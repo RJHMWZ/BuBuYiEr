@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -22,79 +21,37 @@ namespace ClawbearGames
 		private string GetLeaderboardDataUrl { get { return "https://dreamlo.com/lb/" + leaderboardPublicCode; } }
 
 
-		/// <summary>
-		/// Coroutine connect to Dreamlo services. 
-		/// </summary>
-		/// <param name="callback"></param>
-		/// <returns></returns>
-		private IEnumerator CRConnectDreamloServices(Action<bool> callback)
-		{
-			string requestUrl = GetLeaderboardDataUrl + "/pipe";
-			UnityWebRequest unityWebRequest = new UnityWebRequest(requestUrl);
-			DownloadHandlerBuffer dH = new DownloadHandlerBuffer();
-			unityWebRequest.downloadHandler = dH;
-			yield return unityWebRequest.SendWebRequest();
+        private readonly HashSet<UnityWebRequest> activeRequests = new HashSet<UnityWebRequest>();
 
-			float timeCount = 0;
-			while (unityWebRequest.result == UnityWebRequest.Result.InProgress)
-			{
-				yield return null;
-				timeCount += Time.deltaTime;
-				if (timeCount >= 3f)
-				{
-					break;
-				}
-			}
+        private IEnumerator Request(string url, Action<bool, string> callback)
+        {
+            var request = UnityWebRequest.Get(url);
+            request.timeout = 3;
+            activeRequests.Add(request);
+            try
+            {
+                yield return request.SendWebRequest();
+                bool success = request.result == UnityWebRequest.Result.Success;
+                callback?.Invoke(success, success ? request.downloadHandler.text : string.Empty);
+            }
+            finally
+            {
+                if (activeRequests.Remove(request)) request.Dispose();
+            }
+        }
 
-			if (unityWebRequest.result == UnityWebRequest.Result.Success)
-			{
-				callback?.Invoke(true);
-			}
-			else
-			{
-				callback?.Invoke(false);
-			}
-		}
+        private IEnumerator CRConnectDreamloServices(Action<bool> callback)
+            => Request(GetLeaderboardDataUrl + "/pipe", (success, _) => callback?.Invoke(success));
 
+        private IEnumerator CRGetPlayerLeaderboardData(Action<string> callback)
+            => Request(GetLeaderboardDataUrl + "/pipe", (success, text) => callback?.Invoke(text));
 
-
-		/// <summary>
-		/// Coroutine get the leaderboard data from Dreamlo services.
-		/// </summary>
-		/// <param name="callback"></param>
-		/// <returns></returns>
-		private IEnumerator CRGetPlayerLeaderboardData(Action<string> callback)
-		{
-			string requestUrl = GetLeaderboardDataUrl + "/pipe";
-			UnityWebRequest unityWebRequest = new UnityWebRequest(requestUrl);
-			DownloadHandlerBuffer dH = new DownloadHandlerBuffer();
-			unityWebRequest.downloadHandler = dH;
-			yield return unityWebRequest.SendWebRequest();
-
-			float timeCount = 0;
-			while (unityWebRequest.result == UnityWebRequest.Result.InProgress)
-			{
-				yield return null;
-				timeCount += Time.deltaTime;
-				if (timeCount >= 3f)
-				{
-					break;
-				}
-			}
-
-			if (unityWebRequest.result == UnityWebRequest.Result.Success)
-			{
-				callback?.Invoke(unityWebRequest.downloadHandler.text);
-			}
-			else
-			{
-				callback?.Invoke(string.Empty);
-			}
-		}
-
-
-
-
+        private void OnDisable()
+        {
+            StopAllCoroutines();
+            foreach (var request in activeRequests) { request.Abort(); request.Dispose(); }
+            activeRequests.Clear();
+        }
 
 		/// <summary>
 		/// Checking conection to Dreamlo services. 
@@ -102,10 +59,7 @@ namespace ClawbearGames
 		/// <param name="callback"></param>
 		public void CheckConnectedToDreamloServices(Action<bool> callback)
 		{
-			StartCoroutine(CRConnectDreamloServices((isConnected) =>
-			{
-				callback?.Invoke(isConnected);
-			}));
+			StartCoroutine(CRConnectDreamloServices(callback));
 		}
 
 
@@ -139,7 +93,6 @@ namespace ClawbearGames
 					for (int i = 0; i < rows.Length; i++)
 					{
 						string[] chars = rows[i].Split(new char[] { '|' }, StringSplitOptions.None);
-						print(chars[0] + " " + username);
 						if (chars[0].Equals(username))
 						{
 							isMatchedUsername = true;
@@ -168,8 +121,7 @@ namespace ClawbearGames
             string username = PlayerDataHandler.GetUserName();
             int level = PlayerDataHandler.GetCurrentLevel();
             string requestUrl = SetLeaderboardDataUrl + "/add-pipe/" + UnityWebRequest.EscapeURL(username) + "/" + level.ToString();
-			UnityWebRequest www = new UnityWebRequest(requestUrl);
-			www.SendWebRequest();
+			StartCoroutine(Request(requestUrl, null));
 		}
 
 
@@ -180,51 +132,29 @@ namespace ClawbearGames
 		/// Get a list of leaderboard data with callback.
 		/// </summary>
 		/// <param name="callback"></param>
-		public void GetPlayerLeaderboardData(Action<List<LeaderboardParams>> callback)
-		{
-			StartCoroutine(CRGetPlayerLeaderboardData((stringDatas) =>
-			{
-				if (!stringDatas.Equals(string.Empty))
-				{
-					//Convert datas from string to  PlayerLeaderboardData type.
-					string[] rows = stringDatas.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-					LeaderboardParams[] playerLeaderboardDatas = new LeaderboardParams[rows.Length];
-					for (int i = 0; i < rows.Length; i++)
-					{
-						string[] chars = rows[i].Split(new char[] { '|' }, StringSplitOptions.None);
-						LeaderboardParams leaderboardData = new LeaderboardParams();
-						leaderboardData.SetUsername(chars[0]);
-						leaderboardData.SetLevel(int.Parse(chars[1]));
-						playerLeaderboardDatas[i] = leaderboardData;
-					}
-					IComparer<LeaderboardParams> comparer = new LeaderboardComparer();
-					Array.Sort(playerLeaderboardDatas, comparer);
+        public void GetPlayerLeaderboardData(Action<List<LeaderboardParams>> callback)
+        {
+            StartCoroutine(CRGetPlayerLeaderboardData(text => callback?.Invoke(ParseLeaderboard(text))));
+        }
 
-					if (maxUserAmount == -1)
-					{
-						//Return all datas
-						callback?.Invoke(playerLeaderboardDatas.ToList());
-					}
-					else
-					{
-						//Return an amount of data that matched to maxUser
-						List<LeaderboardParams> listPlayerData = new List<LeaderboardParams>();
-						for (int i = 0; i < playerLeaderboardDatas.Length; i++)
-						{
-							listPlayerData.Add(playerLeaderboardDatas[i]);
-							if (i == maxUserAmount - 1)
-							{
-								break;
-							}
-						}
-						callback?.Invoke(listPlayerData);
-					}
-				}
-				else
-				{
-					callback?.Invoke(new List<LeaderboardParams>());
-				}
-			}));
-		}
-	}
+        private List<LeaderboardParams> ParseLeaderboard(string text)
+        {
+            var entries = new List<LeaderboardParams>();
+            if (string.IsNullOrEmpty(text)) return entries;
+            string[] rows = text.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < rows.Length; i++)
+            {
+                string[] values = rows[i].Split('|');
+                if (values.Length < 2 || !int.TryParse(values[1], out int level)) continue;
+                var entry = new LeaderboardParams();
+                entry.SetUsername(values[0]);
+                entry.SetLevel(level);
+                entries.Add(entry);
+            }
+            entries.Sort(new LeaderboardComparer());
+            if (maxUserAmount > 0 && entries.Count > maxUserAmount)
+                entries.RemoveRange(maxUserAmount, entries.Count - maxUserAmount);
+            return entries;
+        }
+    }
 }

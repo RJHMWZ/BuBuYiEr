@@ -30,6 +30,8 @@ namespace ClawbearGames
         private readonly CandyBreakoutButton[] buyVisual = new CandyBreakoutButton[6], upgradeVisual = new CandyBreakoutButton[6];
         private readonly Text[] info = new Text[6], owned = new Text[6], ranks = new Text[6];
         private readonly List<Text> health = new List<Text>();
+        private int[] shownHealth;
+        private float lastArenaTime = -1;
         private float hintUntil, displayedProgress, targetProgress, lastHeight = -1, honeyPop;
         private int lastHoney = -1, lastDestroyed = -1, lastSeconds = -1, lastStars = -1, lastShopHoney = -1;
         private bool lastReady;
@@ -64,7 +66,7 @@ namespace ClawbearGames
             whiteBear=(RectTransform)characters.Find("WhiteBear");
             brownBear=(RectTransform)characters.Find("BrownBear");
             bearHeart=(RectTransform)characters.Find("BearHeart");
-            // Companions sit behind the field; every moving ball remains visible above them.
+            // Keep companions in the decorative area below the collision field.
             RectTransform field = BearMenuFactory.Node(board,"Arena",16,12,976,632);
             arena = field.gameObject.AddComponent<CandyBreakoutGraphic>();
             arena.color = Color.white;
@@ -75,17 +77,23 @@ namespace ClawbearGames
             hintRect = hint.rectTransform;
             BuildMainAction();
             shopHeading = BearMenuFactory.Node(frame,"ShopHeading",36,1210,1008,36);
-            Label(shopHeading,"Title","糖果小队",0,0,300,36,31,TextAnchor.MiddleLeft);
+            Label(shopHeading,"Title","糖果小队 · 左右滑动",0,0,580,36,31,TextAnchor.MiddleLeft);
             ballCount = Label(shopHeading,"BallCount","",620,0,388,36,25,TextAnchor.MiddleRight);
             ballCount.color = SecondaryInk;
-            shop = BearMenuFactory.Node(frame,"BallShop",36,1258,1008,638);
-            GridLayoutGroup grid = shop.gameObject.AddComponent<GridLayoutGroup>();
+            shop = BearMenuFactory.Node(frame,"BallShop",36,1258,1008,310);
+            shop.gameObject.AddComponent<RectMask2D>();
+            shop.gameObject.AddComponent<Image>().color=Color.clear;
+            RectTransform content=BearMenuFactory.Node(shop,"ShopCards",0,0,2034,310);
+            ScrollRect scroll=shop.gameObject.AddComponent<ScrollRect>();
+            scroll.viewport=shop;scroll.content=content;scroll.horizontal=true;scroll.vertical=false;
+            scroll.movementType=ScrollRect.MovementType.Clamped;scroll.decelerationRate=.12f;scroll.scrollSensitivity=45;
+            GridLayoutGroup grid = content.gameObject.AddComponent<GridLayoutGroup>();
             grid.cellSize = new Vector2(324,310);
             grid.spacing = new Vector2(18,18);
-            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            grid.constraintCount = 3;
-            grid.childAlignment = TextAnchor.UpperCenter;
-            for (int i=0;i<6;i++) BuildCard(shop,i);
+            grid.constraint = GridLayoutGroup.Constraint.FixedRowCount;
+            grid.constraintCount = 1;
+            grid.childAlignment = TextAnchor.UpperLeft;
+            for (int i=0;i<6;i++) BuildCard(content,i);
             BuildIntro(root);
             RefreshLayout(true);
         }
@@ -99,15 +107,15 @@ namespace ClawbearGames
             BearGameTheme.Picture(art,header,"HoneyIcon","Daily/IconBottle",366,19,64,66);
             Label(header,"HoneyCaption","本关蜂蜜",451,15,220,28,24,TextAnchor.MiddleLeft).color=SecondaryInk;
             honey=Label(header,"Honey","",449,40,440,52,43,TextAnchor.MiddleLeft,true);
-            Label(frame,"Mode","布布一二 · 甜蜜弹弹乐",36,153,1008,66,50);
-            goal=Label(frame,"Goal","",38,238,510,44,30,TextAnchor.MiddleLeft);
+            Label(frame,"Mode","布布一二 · 甜蜜弹弹乐",36,144,1008,52,40);
+            goal=Label(frame,"Goal","",38,202,510,40,30,TextAnchor.MiddleLeft);
             stars=new Image[3];
-            for(int i=0;i<3;i++) stars[i]=BearGameTheme.Picture(art,frame,"RatingStar"+i,"IconStar",625+i*46,242,37,35);
-            Label(frame,"TimeCaption","用时",808,239,74,40,24).color=SecondaryInk;
-            time=Label(frame,"TimeAndStars","0:00",896,235,148,46,34,TextAnchor.MiddleRight,true);
-            BearMenuShape track=Paper(frame,"ProgressTrack",36,298,1008,26,new Color32(238,218,190,255),13,false);
+            for(int i=0;i<3;i++) stars[i]=BearGameTheme.Picture(art,frame,"RatingStar"+i,"IconStar",625+i*46,204,37,35);
+            Label(frame,"TimeCaption","用时",808,202,74,40,24).color=SecondaryInk;
+            time=Label(frame,"TimeAndStars","0:00",896,198,148,46,34,TextAnchor.MiddleRight,true);
+            BearMenuShape track=Paper(frame,"ProgressTrack",36,248,1008,20,new Color32(238,218,190,255),10,false);
             track.border=2; track.borderColor=new Color32(188,153,117,255);
-            progress=Paper(track.transform,"Progress",3,3,0,20,Mint,10,false).rectTransform;
+            progress=Paper(track.transform,"Progress",3,3,0,14,Mint,7,false).rectTransform;
             progress.GetComponent<BearMenuShape>().border=0;
             progressGleam=Paper(progress,"ProgressGleam",0,3,0,4,new Color(1,1,1,.43f),2,false).rectTransform;
             progressGleam.GetComponent<BearMenuShape>().border=0;
@@ -224,13 +232,18 @@ namespace ClawbearGames
         public void Bind(IngameManager manager)
         {
             game=manager;arena.Board=game.Board;arena.FitPresentation();
-            foreach(Text label in health)Destroy(label.gameObject);
-            health.Clear();
-            foreach(var brick in game.Board.Bricks)
-                health.Add(Label(arenaLabels,"Health","",0,0,100,50,30,TextAnchor.MiddleCenter,true));
+            int required=game.Board.Bricks.Count;
+            while(health.Count<required)health.Add(Label(arenaLabels,"Health","",0,0,100,50,30,TextAnchor.MiddleCenter,true));
+            if(shownHealth==null || shownHealth.Length<required)shownHealth=new int[health.Count];
+            for(int i=0;i<health.Count;i++)
+            {
+                health[i].gameObject.SetActive(i<required);
+                if(i<required){health[i].text="";shownHealth[i]=-1;}
+            }
+            lastArenaTime=-1;
             level.text="第 "+game.CurrentLevel+" 关";
             introTitle.text="第 "+game.CurrentLevel+" 关"+(game.Level.boss?" · 大糖砖":"");
-            introBody.text="① 点击糖砖，打碎后获得蜂蜜\n② 购买小球，让它们自动弹跳\n③ 升级威力，清空全部糖砖\n\n通关奖励："+game.Level.coinReward+" 金币";
+            introBody.text="① 点击糖砖，松手后造成一次伤害\n② 左右滑动小队，购买和升级小球\n③ 小球碰撞反弹，清空糖砖即通关\n\n通关奖励："+game.Level.coinReward+" 金币";
             intro.SetActive(!game.IsRoundStarted);
             lastHoney=lastDestroyed=lastSeconds=lastStars=lastShopHoney=-1;
             displayedProgress=targetProgress=0;hintUntil=0;
@@ -245,23 +258,27 @@ namespace ClawbearGames
             float h=frame.rect.height;
             if(!force&&Mathf.Abs(h-lastHeight)<.1f)return;
             lastHeight=h;
-            float shopY=h-662;
-            BearGameTheme.Place(shop,frame,36,shopY,1008,638);
+            float shopY=h-334;
+            BearGameTheme.Place(shop,frame,36,shopY,1008,310);
             BearGameTheme.Place(shopHeading,frame,36,shopY-48,1008,36);
             float mainY=shopY-186;
             BearGameTheme.Place(mainAction,frame,36,mainY,1008,132);
             BearGameTheme.Place(hintRect,frame,36,mainY-56,1008,40);
-            float boardH=mainY-72-344;
-            BearGameTheme.Place(board,frame,36,344,1008,boardH);
-            BearGameTheme.Place(arena.rectTransform,board,16,12,976,boardH-24);
-            float bearScale = game != null && game.Level.boss ? .56f : .75f;
+            float boardH=mainY-72-280;
+            BearGameTheme.Place(board,frame,36,280,1008,boardH);
+            // Size the visible field to the collision board with an identical X/Y scale.
+            float fieldH=Mathf.Min(boardH-32,976*CandyBreakoutSimulation.Height/CandyBreakoutSimulation.Width);
+            BearGameTheme.Place(arena.rectTransform,board,16,16,976,fieldH);
+            float companionSpace=boardH-fieldH-32;
+            characters.gameObject.SetActive(companionSpace>=100);
+            float bearScale = Mathf.Clamp((companionSpace-20)/270,.25f,.72f);
             float bearHeight = 230 * bearScale + 40;
-            BearGameTheme.Place(characters,board,0,boardH-bearHeight-14,1008,bearHeight);
-            bool boss = game != null && game.Level.boss;
-            float bearX = boss ? 190 : (1008-550*bearScale)*.5f;
-            BearGameTheme.Place((RectTransform)characters.Find("WhiteBear"),characters,bearX,35,270*bearScale,230*bearScale);
-            BearGameTheme.Place((RectTransform)characters.Find("BrownBear"),characters,boss ? 1008-190-270*bearScale : bearX+280*bearScale,35,270*bearScale,230*bearScale);
-            BearGameTheme.Place((RectTransform)characters.Find("BearHeart"),characters,boss ? 504-35*bearScale : bearX+242*bearScale,boss ? bearHeight-46 : 0,70*bearScale,61*bearScale);
+            // Companions occupy spare space below the marked field, outside every collision.
+            BearGameTheme.Place(characters,board,0,fieldH+24+Mathf.Max(0,(companionSpace-bearHeight)*.5f),1008,bearHeight);
+            float bearX = (1008-550*bearScale)*.5f;
+            BearGameTheme.Place(whiteBear,characters,bearX,35,270*bearScale,230*bearScale);
+            BearGameTheme.Place(brownBear,characters,bearX+280*bearScale,35,270*bearScale,230*bearScale);
+            BearGameTheme.Place(bearHeart,characters,bearX+242*bearScale,0,70*bearScale,61*bearScale);
             whiteRest=whiteBear.anchoredPosition;
             brownRest=brownBear.anchoredPosition;
             heartRest=bearHeart.anchoredPosition;
@@ -271,13 +288,13 @@ namespace ClawbearGames
         private void PositionHealth()
         {
             if(game==null)return;
-            for(int i=0;i<health.Count;i++)
+            for(int i=0;i<game.Board.Bricks.Count;i++)
             {
                 var brick=game.Board.Bricks[i];Rect r=arena.VisualRect(brick.Bounds);
                 BearGameTheme.Place(health[i].rectTransform,arenaLabels,r.x-arena.rectTransform.rect.xMin,
                     arena.rectTransform.rect.yMax-r.yMax,r.width,r.height);
                 health[i].color=new Color32(60,33,18,255);
-                health[i].fontSize=brick.Boss?36:Mathf.Clamp(Mathf.RoundToInt(r.height*.68f),20,34);
+                health[i].fontSize=brick.Boss?42:Mathf.Clamp(Mathf.RoundToInt(r.height*.88f),30,40);
             }
         }
         private bool Ready=>game!=null&&game.CanInteract&&game.Board!=null&&!game.Board.Complete;
@@ -328,20 +345,30 @@ namespace ClawbearGames
             }
             scalerApplied=false;
             ResetFeedback();
+            if(!gameObject.activeInHierarchy)
+            {
+                game=null;
+                if(arena!=null)arena.ReleaseBoard();
+            }
         }
         private void LateUpdate()
         {
             RefreshLayout();
             if(game==null||arena.Board!=game.Board)return;
             if(game.IsRoundStarted&&intro.activeSelf)intro.SetActive(false);
-            Refresh();arena.SetVerticesDirty();
+            Refresh();
+            if(lastArenaTime!=game.Board.Elapsed)
+            {
+                lastArenaTime=game.Board.Elapsed;
+                arena.SetVerticesDirty();
+            }
             float delta=game.IsPaused || Time.timeScale<=0 ? 0 : Time.deltaTime;
             if(delta<=0)return;
             animationTime+=delta;
             arena.AdvanceFeedback(delta);
             displayedProgress=Mathf.Lerp(displayedProgress,targetProgress,1-Mathf.Exp(-delta*9));
             float width=1002*displayedProgress;
-            progress.sizeDelta=new Vector2(width,20);
+            progress.sizeDelta=new Vector2(width,14);
             progressGleam.sizeDelta=new Vector2(Mathf.Max(0,width-16),4);
             progressGleam.anchoredPosition=new Vector2(8,-3);
             honeyPop=Mathf.MoveTowards(honeyPop,0,delta*4);
@@ -430,16 +457,16 @@ namespace ClawbearGames
                 lastStars=game.CurrentStar;
                 for(int i=0;i<3;i++) stars[i].color=i<lastStars?Color.white:new Color(.65f,.52f,.37f,.25f);
             }
-            for(int i=0;i<health.Count;i++)
+            for(int i=0;i<b.Bricks.Count;i++)
             {
-                var brick=b.Bricks[i];string value=brick.Alive?brick.Health.ToString():"";
-                if(health[i].text!=value)
-                {
-                    if(!brick.Alive && health[i].text.Length>0)arena.PlayBreak(brick);
-                    health[i].text=value;
-                }
+                var brick=b.Bricks[i];
+                if(shownHealth[i]==brick.Health)continue;
+                if(!brick.Alive && shownHealth[i]>0)arena.PlayBreak(brick);
+                shownHealth[i]=brick.Health;
+                health[i].text=brick.Alive?brick.Health.ToString():"";
             }
-            if(animationTime>hintUntil)hint.text="点糖砖赚蜂蜜，让小球帮你收集甜蜜";
+            const string defaultHint="点击糖砖赚蜂蜜 · 拖动不触发点击";
+            if(animationTime>hintUntil && hint.text!=defaultHint)hint.text=defaultHint;
         }
     }
 }

@@ -93,6 +93,9 @@ namespace ClawbearGames
 
         private bool isInterstitialAdReady = false;
         private bool isRewardedVideoAdReady = false;
+        private const float RetryDelay = 5f;
+        private Coroutine bannerRoutine, initializationRetry, interstitialRetry, rewardedRetry;
+        private enum RetryKind { Initialization, Interstitial, Rewarded }
 
         private void Start()
         {
@@ -111,7 +114,8 @@ namespace ClawbearGames
         /// </summary>
         public void ShowBannerAd(float delay)
         {
-            StartCoroutine(CRShowBannerAd(delay));
+            if(bannerRoutine!=null)StopCoroutine(bannerRoutine);
+            bannerRoutine=StartCoroutine(CRShowBannerAd(delay));
         }
 
         /// <summary>
@@ -119,6 +123,7 @@ namespace ClawbearGames
         /// </summary>
         public void HideBannerAd()
         {
+            if(bannerRoutine!=null){StopCoroutine(bannerRoutine);bannerRoutine=null;}
             Advertisement.Banner.Hide();
         }
 
@@ -143,6 +148,7 @@ namespace ClawbearGames
 
             Advertisement.Banner.SetPosition(bannerPosition);
             Advertisement.Banner.Show(BannerID);
+            bannerRoutine=null;
         }
 
         #endregion
@@ -209,13 +215,16 @@ namespace ClawbearGames
 
         public void OnInitializationComplete()
         {
+            if(this==null || !isActiveAndEnabled)return;
+            if(initializationRetry!=null){StopCoroutine(initializationRetry);initializationRetry=null;}
             Advertisement.Load(InterstitialID, this);
             Advertisement.Load(RewardedID, this);
         }
 
         public void OnInitializationFailed(UnityAdsInitializationError error, string message)
         {
-            Advertisement.Initialize(GameID, false, this);
+            if(this==null || !isActiveAndEnabled)return;
+            if(initializationRetry==null)initializationRetry=StartCoroutine(Retry(RetryKind.Initialization));
         }
 
         #endregion
@@ -224,18 +233,22 @@ namespace ClawbearGames
 
         public void OnUnityAdsAdLoaded(string placementId)
         {
+            if(this==null || !isActiveAndEnabled)return;
             if (placementId.Equals(InterstitialID))
             {
                 isInterstitialAdReady = true;
+                if(interstitialRetry!=null){StopCoroutine(interstitialRetry);interstitialRetry=null;}
             }
             else if (placementId.Equals(RewardedID))
             {
                 isRewardedVideoAdReady = true;
+                if(rewardedRetry!=null){StopCoroutine(rewardedRetry);rewardedRetry=null;}
             }
         }
 
         public void OnUnityAdsFailedToLoad(string placementId, UnityAdsLoadError error, string message)
         {
+            if(this==null || !isActiveAndEnabled)return;
             if (placementId.Equals(InterstitialID))
             {
                 isInterstitialAdReady = false;
@@ -246,8 +259,8 @@ namespace ClawbearGames
             }
 
             // Reload ads
-            Advertisement.Load(InterstitialID, this);
-            Advertisement.Load(RewardedID, this);
+            if(interstitialRetry==null)interstitialRetry=StartCoroutine(Retry(RetryKind.Interstitial));
+            if(rewardedRetry==null)rewardedRetry=StartCoroutine(Retry(RetryKind.Rewarded));
         }
 
         #endregion
@@ -256,6 +269,7 @@ namespace ClawbearGames
 
         public void OnUnityAdsShowComplete(string placementId, UnityAdsShowCompletionState showCompletionState)
         {
+            if(this==null || !isActiveAndEnabled || ServicesManager.Instance==null)return;
             isInterstitialAdReady = false;
             isRewardedVideoAdReady = false;
 
@@ -287,6 +301,7 @@ namespace ClawbearGames
 
         public void OnUnityAdsShowFailure(string placementId, UnityAdsShowError error, string message)
         {
+            if(this==null || !isActiveAndEnabled)return;
             isInterstitialAdReady = false;
             isRewardedVideoAdReady = false;
 
@@ -303,6 +318,32 @@ namespace ClawbearGames
         public void OnUnityAdsShowStart(string placementId) { }
 
         public void OnUnityAdsShowClick(string placementId) { }
+
+        private IEnumerator Retry(RetryKind kind)
+        {
+            // 失败回调可能连续到达，每种请求最多保留一个延迟重试。
+            yield return new WaitForSecondsRealtime(RetryDelay);
+            if(kind==RetryKind.Initialization)
+            {
+                initializationRetry=null;
+                Advertisement.Initialize(GameID,false,this);
+            }
+            else if(kind==RetryKind.Interstitial)
+            {
+                interstitialRetry=null;
+                Advertisement.Load(InterstitialID,this);
+            }
+            else
+            {
+                rewardedRetry=null;
+                Advertisement.Load(RewardedID,this);
+            }
+        }
+        private void OnDisable()
+        {
+            StopAllCoroutines();
+            bannerRoutine=initializationRetry=interstitialRetry=rewardedRetry=null;
+        }
 
         #endregion
     }

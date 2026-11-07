@@ -7,6 +7,7 @@ namespace ClawbearGames
     {
         [SerializeField] private BearMenuArt themeArt = null;
         private bool themeBuilt;
+        private int displayedPercent = -1;
 
         [SerializeField] private Text loadingPercentText = null;
         [SerializeField] private Slider loadingSlider = null;
@@ -31,6 +32,7 @@ namespace ClawbearGames
         public override void OnClose()
         {
             loadingSlider.value = 0f;
+            displayedPercent = -1;
             gameObject.SetActive(false);
         }
 
@@ -43,7 +45,10 @@ namespace ClawbearGames
         {
             amount = Mathf.Clamp01(amount);
             loadingSlider.value = amount;
-            loadingPercentText.text = Mathf.RoundToInt(amount * 100f) + "%";
+            int percent = Mathf.RoundToInt(amount * 100f);
+            if (displayedPercent == percent) return;
+            displayedPercent = percent;
+            loadingPercentText.text = percent + "%";
         }
 
 

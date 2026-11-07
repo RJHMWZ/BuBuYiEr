@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,6 +7,15 @@ namespace ClawbearGames
 {
     public class HomeViewController : BaseViewController
     {
+        private void OnDisable()
+        {
+            if (ServicesManager.Instance != null)
+            {
+                ServicesManager.Instance.CoinManager.TotalCoinChanged -= CoinManager_TotalCoinChanged;
+            }
+            StopAllCoroutines();
+        }
+
         [SerializeField] private RectTransform viewTransform = null;
         [SerializeField] private RectTransform topPanelTrans = null;
         [SerializeField] private RectTransform bottomPanelTrans = null;
@@ -32,7 +40,12 @@ namespace ClawbearGames
         public CoinEffectController GetCoinEffectController()
         {
             //Find in the list
-            CoinEffectController coinEffect = listCoinEffectController.Where(a => !a.gameObject.activeSelf).FirstOrDefault();
+            CoinEffectController coinEffect = null;
+            for (int i = 0; i < listCoinEffectController.Count; i++)
+            {
+                var candidate = listCoinEffectController[i];
+                if (candidate != null && !candidate.gameObject.activeSelf) { coinEffect = candidate; break; }
+            }
 
             if (coinEffect == null)
             {

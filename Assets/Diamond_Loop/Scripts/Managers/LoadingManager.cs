@@ -7,6 +7,10 @@ namespace ClawbearGames
     public class LoadingManager : MonoBehaviour
     {
         private static string targetScene = string.Empty;
+        private AsyncOperation pendingLoad;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetTarget() => targetScene = string.Empty;
 
         private void Start()
         {
@@ -24,7 +28,7 @@ namespace ClawbearGames
         private IEnumerator CRLoadScene()
         {
             string scene = string.IsNullOrEmpty(targetScene) || !Application.CanStreamedLevelBeLoaded(targetScene) ? "Home" : targetScene;
-            AsyncOperation operation = SceneManager.LoadSceneAsync(scene);
+            AsyncOperation operation = pendingLoad = SceneManager.LoadSceneAsync(scene);
             operation.allowSceneActivation = false;
             float displayed = 0f;
             while (displayed < 1f)
@@ -36,6 +40,13 @@ namespace ClawbearGames
             }
             operation.allowSceneActivation = true;
             yield return operation;
+            pendingLoad = null;
+        }
+        private void OnDestroy()
+        {
+            // 中断加载流程时释放激活锁，避免后续场景操作一直排队。
+            if (pendingLoad != null && !pendingLoad.isDone) pendingLoad.allowSceneActivation = true;
+            pendingLoad = null;
         }
 
         /// <summary>

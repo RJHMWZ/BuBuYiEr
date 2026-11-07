@@ -39,6 +39,13 @@ namespace ClawbearGames
         private int currentPage, currentShopTab;
         private float refreshAt;
         private bool subscribed;
+        private CoinManager subscribedCoins;
+        private int shownCoins = -1, shownRewardDay = -1, shownCooldown = -1;
+        private Text[] shownCoinLabels, shownRewardLabels;
+        private BearMenuArt shownRewardArt;
+        private const float PreferenceSaveDelay = .25f;
+        private bool preferencesDirty;
+        private float preferenceSaveAt;
         public BearCollectionPanel CollectionPanel => pages != null && pages.Length > 2 && pages[2] != null
             ? pages[2].GetComponent<BearCollectionPanel>() : null;
         private const string Extras = "BUBU_UI_EXTRA_";
@@ -64,7 +71,8 @@ namespace ClawbearGames
             themeRoot.gameObject.SetActive(true);
             if (!subscribed)
             {
-                ServicesManager.Instance.CoinManager.TotalCoinChanged += OnCoins;
+                subscribedCoins=ServicesManager.Instance.CoinManager;
+                subscribedCoins.TotalCoinChanged += OnCoins;
                 subscribed = true;
                 soundSlider.onValueChanged.AddListener(OnSound);
                 musicSlider.onValueChanged.AddListener(OnMusic);
@@ -83,8 +91,9 @@ namespace ClawbearGames
 
         public void Hide()
         {
-            if (subscribed && ServicesManager.Instance != null)
-                ServicesManager.Instance.CoinManager.TotalCoinChanged -= OnCoins;
+            FlushPreferences();
+            if (subscribedCoins != null) subscribedCoins.TotalCoinChanged -= OnCoins;
+            subscribedCoins=null;
             if (soundSlider != null) soundSlider.onValueChanged.RemoveListener(OnSound);
             if (musicSlider != null) musicSlider.onValueChanged.RemoveListener(OnMusic);
             subscribed = false;
@@ -92,8 +101,10 @@ namespace ClawbearGames
         }
 
         private void OnDestroy() => Hide();
+        private void OnDisable() => Hide();
         private void Update()
         {
+            if(preferencesDirty && Time.unscaledTime>=preferenceSaveAt)FlushPreferences();
             if (!subscribed || themeRoot == null || !themeRoot.gameObject.activeInHierarchy) return;
             if (Time.unscaledTime >= refreshAt) { refreshAt = Time.unscaledTime + 1; Refresh(); }
         }
@@ -135,6 +146,7 @@ namespace ClawbearGames
 
         public void OpenPage(int index)
         {
+            FlushPreferences();
             currentPage = Mathf.Clamp(index, 0, pages.Length - 1);
             for (int i = 0; i < pages.Length; i++) pages[i].SetActive(i == currentPage);
             modal.SetActive(false);
@@ -145,6 +157,8 @@ namespace ClawbearGames
 
         private void OnCoins(int amount)
         {
+            if(shownCoins==amount && shownCoinLabels==coinTexts)return;
+            shownCoins=amount;shownCoinLabels=coinTexts;
             string value = amount.ToString();
             for (int i = 0; i < coinTexts.Length; i++)
             {
@@ -187,10 +201,13 @@ namespace ClawbearGames
         }
 
         private string Price(int index) => index < art.productIds.Length && !string.IsNullOrEmpty(art.productIds[index])
+            && ServicesManager.Instance.IAPManager.IsInitialized()
             ? ServicesManager.Instance.IAPManager.GetLocalizedPriceString(art.productIds[index]) : "N/A";
 
         public void RefreshDailyRewards(int day,int cooldown)
         {
+            if(shownRewardLabels==dailyStates && shownRewardArt==art && shownRewardDay==day && shownCooldown==cooldown)return;
+            shownRewardLabels=dailyStates;shownRewardArt=art;shownRewardDay=day;shownCooldown=cooldown;
             string time=$"{cooldown / 3600:00}:{cooldown / 60 % 60:00}:{cooldown % 60:00}";
             for(int i=0;i<dailyStates.Length;i++)
             {
@@ -222,26 +239,43 @@ namespace ClawbearGames
 
         private void SetToggle(int index, bool enabled)
         {
-            toggleTracks[index].color = enabled ? new Color32(255,224,82,255) : new Color32(220,207,189,255);
+            Color fill=enabled ? new Color32(255,224,82,255) : new Color32(220,207,189,255);
+            Vector2 position=new Vector2(enabled ? 97 : 31, -30);
+            bool artMatches=toggleTrackImages==null || index>=toggleTrackImages.Length || toggleTrackImages[index]==null || toggleTrackImages[index].gameObject.activeSelf==enabled;
+            if(toggleTracks[index].color==fill && toggleTracks[index].bottomColor==fill && toggleKnobs[index].anchoredPosition==position && artMatches)return;
+            toggleTracks[index].color = fill;
             toggleTracks[index].bottomColor = toggleTracks[index].color;
             toggleTracks[index].SetVerticesDirty();
             if(toggleTrackImages!=null && index<toggleTrackImages.Length && toggleTrackImages[index]!=null)
                 toggleTrackImages[index].gameObject.SetActive(enabled);
-            toggleKnobs[index].anchoredPosition = new Vector2(enabled ? 97 : 31, -30);
+            toggleKnobs[index].anchoredPosition = position;
         }
 
         private void OnSound(float value)
         {
             PlayerDataHandler.UpdateSoundValue(value);
             ServicesManager.Instance.SoundManager.UpdateVolumes();
-            PlayerPrefs.Save();
+            QueuePreferenceSave();
         }
         private void OnMusic(float value)
         {
             PlayerDataHandler.UpdateMusicValue(value);
             ServicesManager.Instance.SoundManager.UpdateVolumes();
-            PlayerPrefs.Save();
+            QueuePreferenceSave();
         }
+        private void QueuePreferenceSave()
+        {
+            preferencesDirty=true;
+            preferenceSaveAt=Time.unscaledTime+PreferenceSaveDelay;
+        }
+        private void FlushPreferences()
+        {
+            if(!preferencesDirty)return;
+            PlayerPrefs.Save();
+            preferencesDirty=false;
+        }
+        private void OnApplicationPause(bool paused) { if(paused)FlushPreferences(); }
+        private void OnApplicationQuit() => FlushPreferences();
 
         private void Claim(int index)
         {
@@ -282,7 +316,10 @@ namespace ClawbearGames
             for(int i=0;i<shopProductRows.Length;i++)
             {
                 shopProductRows[i].gameObject.SetActive(currentShopTab==0 || currentShopTab==i);
-                shopProductRows[i].anchoredPosition=new Vector2(43,-(currentShopTab==0?ShopRowPositions[i]:652));
+                Vector2 position=new Vector2(43,-(currentShopTab==0?ShopRowPositions[i]:652));
+                var layout=pages[3].GetComponent<BearMenuLayout>();
+                if(layout!=null)layout.SetContentPosition(shopProductRows[i],position);
+                else shopProductRows[i].anchoredPosition=position;
             }
             shopCategoryHint.gameObject.SetActive(currentShopTab!=0);
         }

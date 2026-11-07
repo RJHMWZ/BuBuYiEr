@@ -146,6 +146,10 @@ namespace ClawbearGames
             if (Board != null) Board.Hit -= OnHit;
             if (Instance == this) Instance = null;
         }
+        private void OnApplicationPause(bool paused)
+        {
+            if (paused && CanInteract) SetPaused(true);
+        }
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         public LevelData DebugLevelData => Level;
         public void DebugFinishLevel(bool won, int stars)

@@ -161,6 +161,7 @@ namespace ClawbearGames
             RectTransform header=Node(frame,"Header",0,0,941,120);
             Picture(menu,header,"BackPanel","TopUIBg",25,22,225,88).type=Image.Type.Sliced;
             Image back=Picture(menu,header,"BackArrow","Setting/IconArrow",51,42,27,42);
+            CenterImage(back);
             back.rectTransform.localEulerAngles=new Vector3(0,0,180);
             Label(menu,header,"BackLabel","??",95,29,126,66,43);
             Hotspot(header,"Back",25,22,225,88,"page",0);
@@ -243,6 +244,7 @@ namespace ClawbearGames
             RectTransform header=Node(frame,"Header",0,0,941,120);
             Picture(menu,header,"BackPanel","TopUIBg",25,22,225,88).type=Image.Type.Sliced;
             Image back=Picture(menu,header,"BackArrow","Setting/IconArrow",51,42,27,42);
+            CenterImage(back);
             back.rectTransform.localEulerAngles=new Vector3(0,0,180);
             Label(menu,header,"BackLabel","??",95,29,126,66,43);
             Hotspot(header,"Back",25,22,225,88,"page",0);
@@ -345,6 +347,7 @@ namespace ClawbearGames
             RectTransform header=Node(frame,"Header",0,0,941,120);
             Picture(menu,header,"BackPanel","TopUIBg",25,22,225,88).type=Image.Type.Sliced;
             Image back=Picture(menu,header,"BackArrow","Setting/IconArrow",51,42,27,42);
+            CenterImage(back);
             back.rectTransform.localEulerAngles=new Vector3(0,0,180);
             Label(menu,header,"BackLabel","返回",95,29,126,66,43);
             Hotspot(header,"Back",25,22,225,88,"page",0);

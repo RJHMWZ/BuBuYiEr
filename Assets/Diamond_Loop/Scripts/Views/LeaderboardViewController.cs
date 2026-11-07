@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Text.RegularExpressions;
-using System.Linq;
 
 namespace ClawbearGames
 {
@@ -20,6 +19,11 @@ namespace ClawbearGames
         [SerializeField] private LeaderboardItemController leaderboardItemControllerPrefab = null;
 
 
+        private int requestGeneration;
+        private static readonly Regex usernamePattern = new Regex(@"^[A-z][A-z|\.|\s]+$");
+        private bool IsRequestCurrent(int generation) => this != null && isActiveAndEnabled && generation == requestGeneration;
+        private void OnDisable() { requestGeneration++; StopAllCoroutines(); }
+
         private List<LeaderboardItemController> listLeaderboardItemController = new List<LeaderboardItemController>();
 
 
@@ -32,7 +36,12 @@ namespace ClawbearGames
         private LeaderboardItemController GetLeaderboardItemController()
         {
             //Find in the list
-            LeaderboardItemController item = listLeaderboardItemController.Where(a => !a.gameObject.activeInHierarchy).FirstOrDefault();
+            LeaderboardItemController item = null;
+            for (int i = 0; i < listLeaderboardItemController.Count; i++)
+            {
+                var candidate = listLeaderboardItemController[i];
+                if (candidate != null && !candidate.gameObject.activeInHierarchy) { item = candidate; break; }
+            }
 
             if (item == null)
             {
@@ -81,6 +90,7 @@ namespace ClawbearGames
 
         public override void OnShow()
         {
+            int generation = ++requestGeneration;
             FadeInCanvasGroup(canvasGroup, 0.75f);
             servicesUnavailablePanelTrans.gameObject.SetActive(false);
             setUsernamePanelTrans.gameObject.SetActive(false);
@@ -100,6 +110,7 @@ namespace ClawbearGames
                 //Check connect to Dreamlo services
                 ServicesManager.Instance.LeaderboardManager.CheckConnectedToDreamloServices((isConnected) =>
                 {
+                    if (!IsRequestCurrent(generation)) return;
                     if (isConnected)
                     {
                         //Connected to Dreamlo services -> show leaderboard
@@ -108,6 +119,7 @@ namespace ClawbearGames
                         //Create items and set data for local player.
                         ServicesManager.Instance.LeaderboardManager.GetPlayerLeaderboardData((playerDatas) =>
                         {
+                    if (!IsRequestCurrent(generation)) return;
                             StartCoroutine(CRCreateLeaderboardItems(playerDatas));
                         });
                     }
@@ -122,6 +134,8 @@ namespace ClawbearGames
 
         public override void OnClose()
         {
+            requestGeneration++;
+            StopAllCoroutines();
             foreach (LeaderboardItemController o in listLeaderboardItemController)
             {
                 o.gameObject.SetActive(false);
@@ -139,11 +153,11 @@ namespace ClawbearGames
 
         public void OnClickConfirmButton()
         {
+            int generation = ++requestGeneration;
             ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Button);
             usernameErrorText.gameObject.SetActive(false);
 
-            Regex regex = new Regex(@"^[A-z][A-z|\.|\s]+$");
-            if (!regex.IsMatch(usernameInputField.text))
+            if (!usernamePattern.IsMatch(usernameInputField.text))
             {
                 usernameErrorText.gameObject.SetActive(true);
                 usernameErrorText.text = "Please Choose A Different Username !";
@@ -153,6 +167,7 @@ namespace ClawbearGames
                 //Check connect to Dreamlo services
                 ServicesManager.Instance.LeaderboardManager.CheckConnectedToDreamloServices((isConnected) =>
                 {
+                    if (!IsRequestCurrent(generation)) return;
                     if (isConnected)
                     {
                         //Connected to Dreamlo services -> check username exists
@@ -160,6 +175,7 @@ namespace ClawbearGames
                         usernameInputField.text = username;
                         ServicesManager.Instance.LeaderboardManager.CheckUsernameExists(username, (isExists) =>
                         {
+                    if (!IsRequestCurrent(generation)) return;
                             if (isExists)
                             {
                                 //Username already exists
@@ -179,6 +195,7 @@ namespace ClawbearGames
                                 //Create items and set data for local player.
                                 ServicesManager.Instance.LeaderboardManager.GetPlayerLeaderboardData((playerDatas) =>
                                 {
+                    if (!IsRequestCurrent(generation)) return;
                                     StartCoroutine(CRCreateLeaderboardItems(playerDatas));
                                 });
                             }

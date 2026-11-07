@@ -17,7 +17,6 @@ namespace ClawbearGames
     public class AdmobController : MonoBehaviour
     {
 #if CB_ADMOB
-
         [Header("Banner ID")]
 #if UNITY_ANDROID
         [SerializeField] private string androidBannerID = "ca-app-pub-1064078647772222/9329609006";
@@ -25,14 +24,12 @@ namespace ClawbearGames
         [SerializeField] private string iOSBannerID = "ca-app-pub-1064078647772222/9329609006";
 #endif
         [SerializeField] private AdPosition bannerPosition = AdPosition.Bottom;
-
         [Header("Interstitial Ad ID")]
 #if UNITY_ANDROID
         [SerializeField] private string androidInterstitialAdID = "ca-app-pub-1064078647772222/2139808686";
 #elif UNITY_IOS
         [SerializeField] private string iOSInterstitialAdID = "ca-app-pub-1064078647772222/2139808686";
 #endif
-
         [Header("Rewarded Ad ID")]
 #if UNITY_ANDROID
         [SerializeField] private string androidRewardedAdID = "ca-app-pub-1064078647772222/9919321234";

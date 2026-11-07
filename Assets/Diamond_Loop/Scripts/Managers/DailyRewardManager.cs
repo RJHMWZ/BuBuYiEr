@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System;
-using System.Text;
+using System.Globalization;
 
 namespace ClawbearGames
 {
@@ -8,10 +8,13 @@ namespace ClawbearGames
     {
         [SerializeField] private DailyRewardConfiguration[] dailyRewardConfigurations = null;
         public DailyRewardConfiguration[] DailyRewardConfigurations { get { return dailyRewardConfigurations; } }
-        private string timeOfLastReward = string.Empty;
+        private string timeOfLastReward;
+        private DateTime parsedRewardTime;
+        private bool hasRewardTime;
+        public event Action RewardsReset;
         private void Start()
         {
-            timeOfLastReward = PlayerDataHandler.GetTimeOfLastReward();
+            RefreshRewardTime();
         }
 
 
@@ -22,52 +25,36 @@ namespace ClawbearGames
         /// <returns></returns>
         public int TimeRemainsTillNextReward()
         {
-            if (string.IsNullOrEmpty(timeOfLastReward))
+            RefreshRewardTime();
+            if (!hasRewardTime) return 0;
+            TimeSpan passed = DateTime.Now.Subtract(parsedRewardTime);
+            int remaining = Mathf.Clamp(86400 - (int)passed.TotalSeconds, 0, 86400);
+            if (remaining == 0 && dailyRewardConfigurations != null &&
+                PlayerDataHandler.GetCurrentRewardIndex() >= dailyRewardConfigurations.Length)
             {
-                return 0;
+                PlayerDataHandler.UpdateCurrentRewardIndex(0);
+                RewardsReset?.Invoke();
             }
-            else
-            {
-                //Get the saved date time of latest reward
-                string[] dayTimeDatas = timeOfLastReward.Split(':');
-                int year = int.Parse(dayTimeDatas[0]);
-                int month = int.Parse(dayTimeDatas[1]);
-                int day = int.Parse(dayTimeDatas[2]);
-                int hour = int.Parse(dayTimeDatas[3]);
-                int minute = int.Parse(dayTimeDatas[4]);
-                int second = int.Parse(dayTimeDatas[5]);
-                DateTime dateTimeOfLatestReward = new DateTime(year, month, day, hour, minute, second);
-
-                TimeSpan timePassed = DateTime.Now.Subtract(dateTimeOfLatestReward);
-                int timeRemains = Mathf.Clamp(86400 - ((int)timePassed.TotalSeconds), 0, 86400);
-
-                //User already claimed the last reward and already passed 24 hours
-                if (timeRemains == 0 && PlayerDataHandler.GetCurrentRewardIndex() >= dailyRewardConfigurations.Length)
-                {
-                    //Reset current reward index and reset claimed panel of all daily reward items
-                    PlayerDataHandler.UpdateCurrentRewardIndex(0);
-                    ViewManager.Instance.DailyRewardViewController.UpdateClaimedPanelOfAllItems();
-                }
-                return timeRemains;
-            }
+            return remaining;
         }
 
+        private void RefreshRewardTime()
+        {
+            string saved = PlayerDataHandler.GetTimeOfLastReward();
+            if (saved == timeOfLastReward) return;
+            timeOfLastReward = saved;
+            hasRewardTime = DateTime.TryParseExact(saved, "yyyy:M:d:H:m:s", CultureInfo.InvariantCulture,
+                DateTimeStyles.None, out parsedRewardTime);
+        }
 
         /// <summary>
         /// Handle actions when user claimed the current daily reward.
         /// </summary>
         public void HandleClaimedCurrentDailyReward()
         {
-            //Set day time values
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append(DateTime.Now.Year + ":");
-            stringBuilder.Append(DateTime.Now.Month + ":");
-            stringBuilder.Append(DateTime.Now.Day + ":");
-            stringBuilder.Append(DateTime.Now.Hour + ":");
-            stringBuilder.Append(DateTime.Now.Minute + ":");
-            stringBuilder.Append(DateTime.Now.Second);
-            PlayerDataHandler.UpdateTimeOfLastReward(stringBuilder.ToString().Trim());
-            timeOfLastReward = stringBuilder.ToString().Trim();
+            DateTime now = DateTime.Now;
+            PlayerDataHandler.UpdateTimeOfLastReward(now.ToString("yyyy:M:d:H:m:s", CultureInfo.InvariantCulture));
+            RefreshRewardTime();
 
             //Update current reward index
             PlayerDataHandler.UpdateCurrentRewardIndex(PlayerDataHandler.GetCurrentRewardIndex() + 1);

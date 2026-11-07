@@ -10,7 +10,7 @@ namespace ClawbearGames
         public const float Width = 900, Height = 760, Radius = 11;
         public const int BallLimit = 24, UpgradeLimit = 10;
         public static readonly string[] Names = { "奶糖球", "草莓球", "星星球", "薄荷球", "可可球", "彩虹球" };
-        public static readonly string[] Descriptions = { "轻快弹跳", "邻近溅射", "追踪糖砖", "持续融化", "重击穿透", "分裂火花" };
+        public static readonly string[] Descriptions = { "轻快弹跳", "邻近溅射", "高速弹跳", "持续融化", "重击穿透", "分裂火花" };
         public static readonly Color32[] Colors = {
             new Color32(255,218,108,255), new Color32(255,153,174,255),
             new Color32(161,191,255,255), new Color32(152,218,177,255),
@@ -32,6 +32,9 @@ namespace ClawbearGames
             public Vector2 Position, Velocity, Previous;
             public int Kind;
             public int LastBrick = -1;
+            public readonly Vector2[] Trail = new Vector2[8];
+            public int TrailCount;
+            public float Impact;
         }
         public struct Spark
         {
@@ -39,9 +42,9 @@ namespace ClawbearGames
             public float Life;
             public Color32 Color;
         }
-        public readonly List<Brick> Bricks = new List<Brick>();
-        public readonly List<Ball> Balls = new List<Ball>();
-        public readonly List<Spark> Sparks = new List<Spark>();
+        public readonly List<Brick> Bricks = new List<Brick>(91);
+        public readonly List<Ball> Balls = new List<Ball>(BallLimit);
+        public readonly List<Spark> Sparks = new List<Spark>(240);
         public readonly int[] Counts = new int[6], Upgrades = new int[6];
         public int Honey { get; private set; }
         public int Destroyed { get; private set; }
@@ -51,6 +54,9 @@ namespace ClawbearGames
         public float Elapsed { get; private set; }
         public event Action<Vector2, bool> Hit;
         private float clickReady;
+        private double accumulatedTime;
+        private const float FixedDelta = 1f / 120;
+        private const float ContactSkin = .02f;
         private readonly System.Random random;
 
         public CandyBreakoutSimulation(LevelData level)
@@ -128,8 +134,16 @@ namespace ClawbearGames
         }
         public void Step(float delta)
         {
-            if (Complete || delta <= 0 || float.IsNaN(delta)) return;
-            delta = Mathf.Min(delta, .1f);
+            if (Complete || delta <= 0 || float.IsNaN(delta) || float.IsInfinity(delta)) return;
+            accumulatedTime += Mathf.Min(delta, .25f);
+            while (accumulatedTime + .00000001 >= FixedDelta && !Complete)
+            {
+                accumulatedTime -= FixedDelta;
+                Tick(FixedDelta);
+            }
+        }
+        private void Tick(float delta)
+        {
             Elapsed += delta;
             foreach (Brick brick in Bricks)
             {
@@ -139,87 +153,151 @@ namespace ClawbearGames
                 brick.PoisonTick -= delta;
                 if (brick.PoisonTick <= 0) { brick.PoisonTick = .5f; Hurt(brick, brick.PoisonDamage); }
             }
-            int steps = Mathf.CeilToInt(delta / .009f);
-            float dt = delta / steps;
             foreach (Ball ball in Balls)
             {
                 ball.Previous = ball.Position;
-                if (ball.Kind == 2)
-                {
-                    Brick target = Nearest(ball.Position);
-                    if (target != null)
-                        ball.Velocity = Vector2.Lerp(ball.Velocity.normalized, (target.Bounds.center - ball.Position).normalized,
-                            delta * 1.5f).normalized * Speed(ball.Kind);
-                }
-                for (int i = 0; i < steps; i++) Move(ball, dt);
+                for (int i = ball.Trail.Length - 1; i > 0; i--) ball.Trail[i] = ball.Trail[i - 1];
+                ball.Trail[0] = ball.Position;
+                ball.TrailCount = Mathf.Min(ball.Trail.Length, ball.TrailCount + 1);
+                ball.Impact = Mathf.Max(0, ball.Impact - delta * 7);
+                Move(ball, delta);
             }
-            for (int i = Sparks.Count - 1; i >= 0; i--)
+            int aliveSparks = 0;
+            for (int i = 0; i < Sparks.Count; i++)
             {
                 Spark spark = Sparks[i];
                 spark.Life -= delta;
                 spark.Position += spark.Velocity * delta;
-                if (spark.Life <= 0) Sparks.RemoveAt(i); else Sparks[i] = spark;
+                if (spark.Life > 0) Sparks[aliveSparks++] = spark;
             }
+            if (aliveSparks < Sparks.Count) Sparks.RemoveRange(aliveSparks, Sparks.Count - aliveSparks);
         }
-        private Brick Nearest(Vector2 pos)
+        // Sweep the circle against the four faces and rounded corners of a rectangle.
+        // The earliest time of impact wins, independent of brick list order or frame rate.
+        private static bool Sweep(Vector2 p, Vector2 travel, Rect r, out float time, out Vector2 normal)
         {
-            Brick best = null;
-            float distance = float.MaxValue;
-            foreach (Brick brick in Bricks)
+            time = 2;
+            normal = Vector2.zero;
+            if (Mathf.Max(p.x, p.x + travel.x) < r.xMin - Radius || Mathf.Min(p.x, p.x + travel.x) > r.xMax + Radius ||
+                Mathf.Max(p.y, p.y + travel.y) < r.yMin - Radius || Mathf.Min(p.y, p.y + travel.y) > r.yMax + Radius) return false;
+            Vector2 closest = new Vector2(Mathf.Clamp(p.x, r.xMin, r.xMax), Mathf.Clamp(p.y, r.yMin, r.yMax));
+            Vector2 offset = p - closest;
+            if (offset.sqrMagnitude < Radius * Radius - .001f)
             {
-                float d = (brick.Bounds.center - pos).sqrMagnitude;
-                if (brick.Alive && d < distance) { best = brick; distance = d; }
+                if (offset.sqrMagnitude > .0001f) normal = offset.normalized;
+                else
+                {
+                    float nearest = p.x - r.xMin;
+                    normal = Vector2.left;
+                    if (r.xMax - p.x < nearest) { nearest = r.xMax - p.x; normal = Vector2.right; }
+                    if (p.y - r.yMin < nearest) { nearest = p.y - r.yMin; normal = Vector2.down; }
+                    if (r.yMax - p.y < nearest) normal = Vector2.up;
+                }
+                time = 0;
+                return true;
             }
-            return best;
+            if (travel.x > .000001f) Face((r.xMin - Radius - p.x) / travel.x, p.y, travel.y, r.yMin, r.yMax, Vector2.left, ref time, ref normal);
+            if (travel.x < -.000001f) Face((r.xMax + Radius - p.x) / travel.x, p.y, travel.y, r.yMin, r.yMax, Vector2.right, ref time, ref normal);
+            if (travel.y > .000001f) Face((r.yMin - Radius - p.y) / travel.y, p.x, travel.x, r.xMin, r.xMax, Vector2.down, ref time, ref normal);
+            if (travel.y < -.000001f) Face((r.yMax + Radius - p.y) / travel.y, p.x, travel.x, r.xMin, r.xMax, Vector2.up, ref time, ref normal);
+            float a = travel.sqrMagnitude;
+            if (a > .00000001f)
+                for (int corner = 0; corner < 4; corner++)
+                {
+                    Vector2 c = new Vector2(corner % 2 == 0 ? r.xMin : r.xMax, corner < 2 ? r.yMin : r.yMax);
+                    Vector2 d = p - c;
+                    float b = Vector2.Dot(d, travel);
+                    float discriminant = b * b - a * (d.sqrMagnitude - Radius * Radius);
+                    if (discriminant < 0) continue;
+                    float t = (-b - Mathf.Sqrt(discriminant)) / a;
+                    if (t < 0 || t > 1 || t >= time) continue;
+                    Vector2 n = (p + travel * t - c).normalized;
+                    if ((corner % 2 == 0 ? n.x <= 0 : n.x >= 0) && (corner < 2 ? n.y <= 0 : n.y >= 0) && Vector2.Dot(travel, n) < -.000001f)
+                    { time = t; normal = n; }
+                }
+            return time <= 1;
+        }
+        private static void Face(float t, float position, float travel, float min, float max, Vector2 n, ref float earliest, ref Vector2 normal)
+        {
+            if (t < 0 || t > 1 || t >= earliest) return;
+            float contact = position + travel * t;
+            if (contact < min || contact > max) return;
+            earliest = t;
+            normal = n;
         }
         private void Move(Ball ball, float dt)
         {
-            Vector2 previous = ball.Position;
-            ball.Position += ball.Velocity * dt;
-            if (ball.Position.x < Radius || ball.Position.x > Width - Radius)
-            { ball.Position.x = Mathf.Clamp(ball.Position.x, Radius, Width - Radius); ball.Velocity.x *= -1; }
-            if (ball.Position.y < Radius || ball.Position.y > Height - Radius)
-            { ball.Position.y = Mathf.Clamp(ball.Position.y, Radius, Height - Radius); ball.Velocity.y *= -1; }
-            int touching = -1;
-            for (int i = 0; i < Bricks.Count; i++)
+            ball.Position = new Vector2(Mathf.Clamp(ball.Position.x, Radius, Width - Radius), Mathf.Clamp(ball.Position.y, Radius, Height - Radius));
+            float remaining = dt;
+            for (int contact = 0; contact < 12 && remaining > .000001f; contact++)
             {
-                Brick brick = Bricks[i];
-                if (!brick.Alive) continue;
-                Rect r = brick.Bounds;
-                Vector2 closest = new Vector2(Mathf.Clamp(ball.Position.x, r.xMin, r.xMax), Mathf.Clamp(ball.Position.y, r.yMin, r.yMax));
-                if ((ball.Position - closest).sqrMagnitude > Radius * Radius) continue;
-                touching = i;
-                if (ball.LastBrick == i) break;
-                Hurt(brick, Damage(ball.Kind));
-                if (ball.Kind == 1 || ball.Kind == 5)
+                Vector2 travel = ball.Velocity * remaining;
+                float first = 1;
+                Vector2 normal = Vector2.zero;
+                int hit = -1;
+                if (travel.x < 0) Face((Radius - ball.Position.x) / travel.x, 0, 0, -1, 1, Vector2.right, ref first, ref normal);
+                if (travel.x > 0) Face((Width - Radius - ball.Position.x) / travel.x, 0, 0, -1, 1, Vector2.left, ref first, ref normal);
+                if (travel.y < 0) Face((Radius - ball.Position.y) / travel.y, 0, 0, -1, 1, Vector2.up, ref first, ref normal);
+                if (travel.y > 0) Face((Height - Radius - ball.Position.y) / travel.y, 0, 0, -1, 1, Vector2.down, ref first, ref normal);
+                for (int i = 0; i < Bricks.Count; i++)
                 {
-                    float range = ball.Kind == 1 ? 125 : 190;
-                    int hits = 0;
-                    foreach (Brick other in Bricks)
+                    if (!Bricks[i].Alive || !Sweep(ball.Position, travel, Bricks[i].Bounds, out float t, out Vector2 n) || t > first) continue;
+                    first = t; normal = n; hit = i;
+                }
+                ball.Position += travel * first;
+                remaining *= 1 - first;
+                if (normal == Vector2.zero) break;
+                bool approaching = Vector2.Dot(ball.Velocity, normal) < 0;
+                bool pierce = false;
+                if (hit >= 0)
+                {
+                    Brick brick = Bricks[hit];
+                    Rect r = brick.Bounds;
+                    // Recover a pre-existing overlap fully, including a centre inside a brick.
+                    Vector2 closest = new Vector2(Mathf.Clamp(ball.Position.x, r.xMin, r.xMax), Mathf.Clamp(ball.Position.y, r.yMin, r.yMax));
+                    if (r.Contains(ball.Position))
                     {
-                        if (other == brick || !other.Alive || Vector2.Distance(other.Bounds.center, r.center) > range) continue;
-                        Hurt(other, Mathf.Max(1, Damage(ball.Kind) / 2));
-                        if (ball.Kind == 5 && ++hits >= 3) break;
+                        if (normal.x < 0) ball.Position.x = r.xMin - Radius;
+                        else if (normal.x > 0) ball.Position.x = r.xMax + Radius;
+                        else if (normal.y < 0) ball.Position.y = r.yMin - Radius;
+                        else ball.Position.y = r.yMax + Radius;
+                    }
+                    else ball.Position += normal * Mathf.Max(0, Radius - Vector2.Distance(ball.Position, closest));
+                    if (approaching)
+                    {
+                        Strike(ball, brick);
+                        pierce = ball.Kind == 4 && !brick.Alive;
+                        ball.LastBrick = hit;
                     }
                 }
-                if (ball.Kind == 3 && brick.Alive)
-                { brick.PoisonTime = 3; brick.PoisonDamage = Damage(3); }
-                if (ball.Kind != 4 || brick.Alive)
+                if (approaching && !pierce)
                 {
-                    if (previous.y <= r.yMin || previous.y >= r.yMax)
-                    {
-                        ball.Velocity.y *= -1;
-                        ball.Position.y = previous.y < r.center.y ? r.yMin - Radius - .1f : r.yMax + Radius + .1f;
-                    }
-                    else
-                    {
-                        ball.Velocity.x *= -1;
-                        ball.Position.x = previous.x < r.center.x ? r.xMin - Radius - .1f : r.xMax + Radius + .1f;
-                    }
+                    ball.Velocity = Vector2.Reflect(ball.Velocity, normal);
+                    ball.Impact = 1;
                 }
-                break;
+                ball.Position += (pierce ? ball.Velocity.normalized : normal) * ContactSkin;
             }
-            ball.LastBrick = touching;
+        }
+        private void Strike(Ball ball, Brick brick)
+        {
+            Hurt(brick, Damage(ball.Kind));
+            if (ball.Kind == 1 || ball.Kind == 5)
+            {
+                float range = ball.Kind == 1 ? 125 : 190;
+                int hits = 0;
+                foreach (Brick other in Bricks)
+                {
+                    if (other == brick || !other.Alive || Vector2.Distance(other.Bounds.center, brick.Bounds.center) > range) continue;
+                    Hurt(other, Mathf.Max(1, Damage(ball.Kind) / 2));
+                    if (ball.Kind == 5 && ++hits >= 3) break;
+                }
+            }
+            if (ball.Kind == 3 && brick.Alive)
+            { brick.PoisonTime = 3; brick.PoisonDamage = Damage(3); brick.PoisonTick = .5f; }
+            if (brick.Alive)
+                for (int i = 0; i < 3 && Sparks.Count < 240; i++)
+                    Sparks.Add(new Spark { Position = ball.Position, Life = .18f, Color = Colors[brick.Color],
+                        Velocity = -ball.Velocity * .16f + new Vector2((float)random.NextDouble() * 100 - 50, (float)random.NextDouble() * 100 - 50) });
         }
         private void Hurt(Brick brick, int damage)
         {

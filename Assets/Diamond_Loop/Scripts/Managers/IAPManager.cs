@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Purchasing;
 
@@ -15,6 +15,14 @@ namespace ClawbearGames
 
         private StoreController storeController;
         private bool isInitialized = false;
+        private Task initializationTask;
+        private bool fetchingProducts, destroyed;
+        private struct PurchaseCallback
+        {
+            public string ProductId;
+            public Action<Product> Handler;
+        }
+        private readonly List<PurchaseCallback> pendingCallbacks = new List<PurchaseCallback>();
 
         public event Action OnInitializeSuccess;
         public event Action<string> OnInitializeFailed;
@@ -29,7 +37,15 @@ namespace ClawbearGames
         /// <summary>
         /// Initialize Unity IAP with configured products
         /// </summary>
-        public async System.Threading.Tasks.Task InitializePurchasing()
+        public Task InitializePurchasing()
+        {
+            if (destroyed || isInitialized || fetchingProducts) return Task.CompletedTask;
+            if (initializationTask != null && !initializationTask.IsCompleted) return initializationTask;
+            initializationTask = InitializeStore();
+            return initializationTask;
+        }
+
+        private async Task InitializeStore()
         {
             if (isInitialized)
             {
@@ -38,7 +54,9 @@ namespace ClawbearGames
             try
             {
                 // Get StoreController instance
+                DetachStore();
                 storeController = UnityIAPServices.StoreController();
+                var connectingStore = storeController;
 
                 // Subscribe to events
                 storeController.OnPurchasePending += HandlePurchasePending;
@@ -46,6 +64,7 @@ namespace ClawbearGames
 
                 // Connect to store
                 await storeController.Connect();
+                if (destroyed || this == null || storeController != connectingStore) return;
 
                 // Subscribe to events
                 storeController.OnPurchaseConfirmed += HandlePurchaseConfirmed;
@@ -57,17 +76,20 @@ namespace ClawbearGames
 
 
                 // Prepare product list
-                var productDefinitions = new List<ProductDefinition>();
+                var productDefinitions = new List<ProductDefinition>(listIAPProduct.Count);
                 foreach (var config in listIAPProduct)
                 {
                     productDefinitions.Add(new ProductDefinition(config.ProductID, config.ProductType));
                 }
 
                 // Fetch products
+                fetchingProducts = true;
                 storeController.FetchProducts(productDefinitions);
             }
             catch (Exception e)
             {
+                fetchingProducts = false;
+                if (destroyed || this == null) return;
                 Debug.LogError($"IAPProductController Initialization Error: {e.Message}");
                 OnInitializeFailed?.Invoke(e.Message);
             }
@@ -115,7 +137,7 @@ namespace ClawbearGames
                 return;
             }
 
-            Product product = storeController.GetProducts().FirstOrDefault(p => p.definition.id == productID);
+            Product product = storeController.GetProductById(productID);
             if (product != null && product.availableToPurchase)
             {
                 Debug.Log($"Purchasing product: {productID}");
@@ -129,11 +151,13 @@ namespace ClawbearGames
                         if (purchasedProduct.definition.id == productID)
                         {
                             OnPurchaseSuccess -= oneTimeCallback;
+                            RemoveCallback(oneTimeCallback);
                             onSuccess(purchasedProduct);
                         }
                     };
 
                     OnPurchaseSuccess += oneTimeCallback;
+                    pendingCallbacks.Add(new PurchaseCallback { ProductId = productID, Handler = oneTimeCallback });
                 }
 
                 storeController.PurchaseProduct(productID);
@@ -174,6 +198,7 @@ namespace ClawbearGames
                 {
                     storeController.RestoreTransactions((success, message) =>
                     {
+                        if (destroyed || this == null) return;
                         if (success)
                         {
                             Debug.Log("Restore purchases completed");
@@ -202,18 +227,23 @@ namespace ClawbearGames
 
         private void HandleProductsFetched(List<Product> products)
         {
+            if (destroyed || this == null) return;
             // Fetch purchases after products are loaded
             storeController.FetchPurchases();
         }
 
         private void HandleProductsFetchFailed(ProductFetchFailed failure)
         {
+            if (destroyed || this == null) return;
+            fetchingProducts = false;
             Debug.LogError($"Products fetch failed: {failure.FailureReason}");
             OnInitializeFailed?.Invoke(failure.FailureReason.ToString());
         }
 
         private void HandlePurchasesFetched(Orders orders)
         {
+            if (destroyed || this == null) return;
+            fetchingProducts = false;
             isInitialized = true;
             OnInitializeSuccess?.Invoke();
         }
@@ -221,12 +251,15 @@ namespace ClawbearGames
 
         private void HandlePurchasesFetchFailed(PurchasesFetchFailureDescription failure)
         {
+            if (destroyed || this == null) return;
+            fetchingProducts = false;
             Debug.LogError($"Purchases fetch failed: {failure.FailureReason}");
         }
 
 
         private void HandlePurchasePending(PendingOrder pendingOrder)
         {
+            if (destroyed || this == null) return;
             // Get the product
             foreach (var info in pendingOrder.Info.PurchasedProductInfo)
             {
@@ -244,6 +277,7 @@ namespace ClawbearGames
 
         private void HandlePurchaseConfirmed(Order order)
         {
+            if (destroyed || this == null) return;
             foreach(var info in order.Info.PurchasedProductInfo)
             {
                 Debug.Log($"Purchase confirmed: {info.productId}");
@@ -259,8 +293,15 @@ namespace ClawbearGames
 
         private void HandlePurchaseFailed(FailedOrder failedOrder)
         {
+            if (destroyed || this == null) return;
             foreach (var info in failedOrder.Info.PurchasedProductInfo)
             {
+                for (int i = pendingCallbacks.Count - 1; i >= 0; i--)
+                    if (pendingCallbacks[i].ProductId == info.productId)
+                    {
+                        OnPurchaseSuccess -= pendingCallbacks[i].Handler;
+                        pendingCallbacks.RemoveAt(i);
+                    }
                 Debug.LogError($"Purchase failed: {info.productId} - Reason: {failedOrder.FailureReason}");
             }
             OnPurchaseFailed?.Invoke(failedOrder);
@@ -268,6 +309,8 @@ namespace ClawbearGames
 
         private void HandleStoreDisconnected(StoreConnectionFailureDescription failure)
         {
+            if (destroyed || this == null) return;
+            fetchingProducts = false;
             Debug.LogError($"Store disconnected: {failure.Message}");
             OnInitializeFailed?.Invoke(failure.Message);
         }
@@ -298,6 +341,20 @@ namespace ClawbearGames
         }
 
         private void OnDestroy()
+        {
+            destroyed = true;
+            isInitialized = fetchingProducts = false;
+            DetachStore();
+            pendingCallbacks.Clear();
+            OnInitializeSuccess = null; OnInitializeFailed = null;
+            OnPurchaseSuccess = null; OnPurchaseFailed = null;
+        }
+        private void RemoveCallback(Action<Product> handler)
+        {
+            for (int i = pendingCallbacks.Count - 1; i >= 0; i--)
+                if (pendingCallbacks[i].Handler == handler) { pendingCallbacks.RemoveAt(i); break; }
+        }
+        private void DetachStore()
         {
             if (storeController != null)
             {

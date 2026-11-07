@@ -104,3 +104,20 @@ BREAKOUT SIM PASS level 99 in 27.9 seconds
 BREAKOUT SIM PASS level 100 in 35.1 seconds
 BREAKOUT SIM PASS level 101 in 28.5 seconds
 BREAKOUT ALL CHECKS PASSED
+
+2026-11-07 | Unity 2022.3.62f3c1 | Mobile layout and collision regression
+Runtime and Editor compilation: PASS (2 existing unused-field warnings)
+MOBILE PHYSICS: faces, corners, overlap exit, high speed, pierce, no attraction, frame rates and 180 seconds seam soak PASS
+MOBILE LAYOUT: four viewport sizes with simulated notch/home indicator PASS
+UI POLISH: 101 level presentation mappings PASS
+BREAKOUT ALL CHECKS PASSED
+Pointer down / hold / release, pause, purchases, horizontal shop, win/reward, retry, next level and home: PASS
+Portrait 1080x1920, tall 1080x2400, 1024x1536, tablet 1536x2048 and landscape 1920x1080 rendered.
+Phone hardware performance and Android/iOS build verification: NOT RUN
+
+2026-11-07 follow-up | Click-only interaction (replaces hold-to-repeat behavior above)
+Runtime / Editor compilation: PASS (2 existing unused-field warnings)
+CLICK INPUT: real touch hold, release, brick drag, drag back, board-to-button, button-to-button, empty-to-brick, pause cancellation and normal button tap PASS
+BREAKOUT ALL CHECKS PASSED
+Touchscreen events were replayed through InputSystemUIInputModule and actual UI raycasts in the isolated test project.
+Touch hold causes no damage; same-brick release deals one hit; dragging across bricks/buttons or returning after a drag causes no click.

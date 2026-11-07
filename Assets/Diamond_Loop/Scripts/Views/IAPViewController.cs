@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,6 +8,15 @@ namespace ClawbearGames
 {
     public class IAPViewController : BaseViewController
     {
+        private void OnDisable()
+        {
+            if (ServicesManager.Instance != null)
+            {
+                ServicesManager.Instance.CoinManager.TotalCoinChanged -= CoinManager_TotalCoinChanged;
+            }
+            StopAllCoroutines();
+        }
+
         [SerializeField] private RectTransform viewTransform = null;
         [SerializeField] private CanvasGroup canvasGroup = null;
         [SerializeField] private CanvasGroup confirmGroup = null;
@@ -36,7 +44,12 @@ namespace ClawbearGames
         public IAPProductController GetIAPProductController()
         {
             //Find in the list
-            IAPProductController productController = listIAPProductController.Where(a => !a.gameObject.activeSelf).FirstOrDefault();
+            IAPProductController productController = null;
+            for (int i = 0; i < listIAPProductController.Count; i++)
+            {
+                var candidate = listIAPProductController[i];
+                if (candidate != null && !candidate.gameObject.activeSelf) { productController = candidate; break; }
+            }
 
             if (productController == null)
             {
@@ -60,7 +73,12 @@ namespace ClawbearGames
         public PurchasedItemController GetPurchasedItemController()
         {
             //Find in the list
-            PurchasedItemController purchasedItem = listPurchasedItemController.Where(a => !a.gameObject.activeSelf).FirstOrDefault();
+            PurchasedItemController purchasedItem = null;
+            for (int i = 0; i < listPurchasedItemController.Count; i++)
+            {
+                var candidate = listPurchasedItemController[i];
+                if (candidate != null && !candidate.gameObject.activeSelf) { purchasedItem = candidate; break; }
+            }
 
             if (purchasedItem == null)
             {
@@ -84,7 +102,12 @@ namespace ClawbearGames
         public CoinEffectController GetCoinEffectController()
         {
             //Find in the list
-            CoinEffectController cashEffect = listCoinEffectController.Where(a => !a.gameObject.activeSelf).FirstOrDefault();
+            CoinEffectController cashEffect = null;
+            for (int i = 0; i < listCoinEffectController.Count; i++)
+            {
+                var candidate = listCoinEffectController[i];
+                if (candidate != null && !candidate.gameObject.activeSelf) { cashEffect = candidate; break; }
+            }
 
             if (cashEffect == null)
             {

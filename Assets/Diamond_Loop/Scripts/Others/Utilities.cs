@@ -13,32 +13,14 @@ namespace ClawbearGames
         /// Check if user is touching an UI game object.
         /// </summary>
         /// <returns></returns>
-        public static bool IsPointerOverUIObject()
-        {
-            PointerEventData eventData = new PointerEventData(EventSystem.current) { position = InputManager.GetMousePosition() };
-            List<RaycastResult> results = new List<RaycastResult>();
-            EventSystem.current.RaycastAll(eventData, results);
-            return results.Count > 0;
-        }
-
+        public static bool IsPointerOverUIObject() => InputManager.IsPointerOverUI();
 
         /// <summary>
         /// Check if user is touching the give target object.
         /// </summary>
         /// <param name="target"></param>
         /// <returns></returns>
-        public static bool IsPointerOverUIObject(GameObject target)
-        {
-            PointerEventData eventData = new PointerEventData(EventSystem.current) { position = InputManager.GetMousePosition() };
-            List<RaycastResult> results = new List<RaycastResult>();
-            EventSystem.current.RaycastAll(eventData, results);
-            foreach (RaycastResult raycastResult in results)
-            {
-                if (raycastResult.gameObject.Equals(target)) { return true; }
-            }
-            return false;
-        }
-
+        public static bool IsPointerOverUIObject(GameObject target) => InputManager.IsTouchingUIObject(target);
 
         /// <summary>
         /// Convert the given float number to time format.
