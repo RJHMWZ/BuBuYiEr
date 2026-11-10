@@ -303,6 +303,7 @@ namespace ClawbearGames
             if(!Ready)return;
             if(game.Board.Buy(kind))
             {
+                ServicesManager.Instance.SoundManager.PlayCue(GameSoundCue.Purchase);
                 purchasePulse[kind]=.32f;
                 Notice(CandyBreakoutSimulation.Names[kind]+"加入啦 · "+CandyBreakoutSimulation.Descriptions[kind]);
             }
@@ -313,6 +314,7 @@ namespace ClawbearGames
             if(!Ready)return;
             if(game.Board.Upgrade(kind))
             {
+                ServicesManager.Instance.SoundManager.PlayCue(GameSoundCue.Upgrade);
                 upgradePulse[kind]=.48f;celebrateTime=.55f;
                 Notice(CandyBreakoutSimulation.Names[kind]+"威力提升，同类小球一起升级！");
             }
@@ -322,6 +324,7 @@ namespace ClawbearGames
         {
             if(Ready&&game.Board.UpgradeClick())
             {
+                ServicesManager.Instance.SoundManager.PlayCue(GameSoundCue.Upgrade);
                 celebrateTime=.55f;
                 Notice("点击威力提升！试着连点糖砖吧");
             }

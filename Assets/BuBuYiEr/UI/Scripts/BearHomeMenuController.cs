@@ -112,7 +112,8 @@ namespace ClawbearGames
         public void Handle(string action, int argument = 0)
         {
             if (!Application.isPlaying) return;
-            ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Button);
+            ServicesManager.Instance.SoundManager.PlayCue(action=="page" ? argument==0?GameSoundCue.UiClose:GameSoundCue.UiOpen :
+                action=="close-modal"?GameSoundCue.UiClose:GameSoundCue.UiClick);
             switch (action)
             {
                 case "page": OpenPage(argument); break;
@@ -289,6 +290,7 @@ namespace ClawbearGames
                 PlayerPrefs.SetInt(Extras + type, PlayerPrefs.GetInt(Extras + type, 0) + amount);
             }
             rewards.HandleClaimedCurrentDailyReward();
+            ServicesManager.Instance.SoundManager.PlayCue(GameSoundCue.Reward);
             PlayerPrefs.Save();
             Refresh();
             Message("领取成功", new[] { "金币 ×100", "爱心 ×3", "四叶草 ×1", "小花 ×5", "装饰券 ×1", "金币 ×300", "糖果罐 ×1" }[index] + "\n奖励已放入你的收藏。");
@@ -339,6 +341,7 @@ namespace ClawbearGames
         }
         public void Message(string title, string body, Sprite picture = null)
         {
+            if(ServicesManager.Instance!=null)ServicesManager.Instance.SoundManager.PlayCue(GameSoundCue.UiOpen);
             modal.SetActive(true);
             modal.transform.SetAsLastSibling();
             modalTitle.text = title;

@@ -109,6 +109,8 @@ namespace ClawbearGames
             if (next == null) return;
             next.gameObject.SetActive(true);
             next.OnShow();
+            if(viewType!=ViewType.INGAME_VIEW && viewType!=ViewType.ENDGAME_VIEW && viewType!=ViewType.LOADING_VIEW && ServicesManager.Instance!=null)
+                ServicesManager.Instance.SoundManager.PlayHomeMusic();
             ActiveViewType = viewType;
             currentViewController = next;
         }

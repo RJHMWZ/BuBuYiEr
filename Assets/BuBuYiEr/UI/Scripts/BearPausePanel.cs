@@ -89,6 +89,7 @@ namespace ClawbearGames
         {
             IngameManager manager = IngameManager.Instance;
             if (leaving || manager == null || manager.IngameState != IngameState.Ingame_Playing) return;
+            ServicesManager.Instance.SoundManager.PlayCue(GameSoundCue.Pause);
             manager.SetPaused(true);
             levelLabel.text = "第 " + manager.CurrentLevel + " 关 · 已暂停";
             overlay.SetActive(true);
@@ -99,6 +100,7 @@ namespace ClawbearGames
         public void Resume()
         {
             if (leaving) return;
+            if(IngameManager.Instance!=null && IngameManager.Instance.IsPaused)ServicesManager.Instance.SoundManager.PlayCue(GameSoundCue.Resume);
             if (overlay != null) overlay.SetActive(false);
             IngameManager.Instance?.SetPaused(false);
             UnityEngine.EventSystems.EventSystem.current?.SetSelectedGameObject(null);
@@ -107,11 +109,16 @@ namespace ClawbearGames
         public void Restart()
         {
             if (leaving || IngameManager.Instance == null) return;
+            ServicesManager.Instance.SoundManager.PlayCue(GameSoundCue.UiClick);
             PlayerDataHandler.UpdateTargetLevel(IngameManager.Instance.CurrentLevel);
             Leave("Ingame");
         }
 
-        public void ReturnHome() => Leave("Home");
+        public void ReturnHome()
+        {
+            if(!leaving)ServicesManager.Instance.SoundManager.PlayCue(GameSoundCue.UiClose);
+            Leave("Home");
+        }
 
         private void Leave(string scene)
         {

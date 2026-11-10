@@ -1302,12 +1302,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   soundSource: {fileID: 1749731984800522394}
   musicSource: {fileID: 1749731984953000047}
-  button: {fileID: 8300000, guid: b8edc94c7a8cf8f45a7b38bba9c188b2, type: 3}
-  collectCoin: {fileID: 8300000, guid: a5e399079d250364fbac25a760bfa71d, type: 3}
-  countStar: {fileID: 8300000, guid: 3cbfea5eda5c2d2489ad740de8c0304a, type: 3}
-  levelCompleted: {fileID: 8300000, guid: 4049d9076beb92342974aefd9a67009e, type: 3}
-  levelFailed: {fileID: 8300000, guid: 6efcc80d36020c94eb649cb2e7f57289, type: 3}
-  rewarded: {fileID: 8300000, guid: cb243726fe55ce1418f3c2b9a80bd2ea, type: 3}
+  button: {fileID: 8300000, guid: c64c90244676b95928645e6a2cf314b1, type: 3}
+  collectCoin: {fileID: 8300000, guid: f035badc27b600eb12e6c6f938fa7cd8, type: 3}
+  countStar: {fileID: 8300000, guid: 62dfa388dd869813c3794d15a9aee950, type: 3}
+  levelCompleted: {fileID: 8300000, guid: 69bee6b4f2c668bbec8243ec00285d57, type: 3}
+  levelFailed: {fileID: 8300000, guid: e77a4b9148a74c435ddf5fc8df053e64, type: 3}
+  rewarded: {fileID: 8300000, guid: 9efd8f20b513d8f3043d6ab81e937d68, type: 3}
 --- !u!114 &1749731985682112010
 MonoBehaviour:
   m_ObjectHideFlags: 0

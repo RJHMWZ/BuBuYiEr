@@ -53,6 +53,7 @@ namespace ClawbearGames
         public bool Complete => Destroyed == Total && Total > 0;
         public float Elapsed { get; private set; }
         public event Action<Vector2, bool> Hit;
+        public event Action<Vector2> WallHit;
         private float clickReady;
         private double accumulatedTime;
         private const float FixedDelta = 1f / 120;
@@ -274,6 +275,7 @@ namespace ClawbearGames
                 {
                     ball.Velocity = Vector2.Reflect(ball.Velocity, normal);
                     ball.Impact = 1;
+                    if(hit<0)WallHit?.Invoke(ball.Position);
                 }
                 ball.Position += (pierce ? ball.Velocity.normalized : normal) * ContactSkin;
             }

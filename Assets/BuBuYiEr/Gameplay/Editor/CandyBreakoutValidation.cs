@@ -38,6 +38,7 @@ namespace ClawbearGames.EditorTools
                     "validation requires the isolated Temp/BreakoutValidation project and product name");
                 PlayerPrefs.DeleteKey("CBGAMES_PLAYER_DATA");
                 CheckDataAndAllocations();
+                CheckThemeAudio();
                 CheckCollisions();
                 CheckSafeAreas();
                 var levels = Resources.LoadAll<LevelData>("Levels");
@@ -127,6 +128,28 @@ namespace ClawbearGames.EditorTools
             long before=GC.GetAllocatedBytesForCurrentThread();
             var probe=new byte[4096];GC.KeepAlive(probe);
             return GC.GetAllocatedBytesForCurrentThread()>before;
+        }
+        private static void CheckThemeAudio()
+        {
+            string[] music={"HomeLoop","CandyDay","MilkTea","Garden","StarryCandy","BigCandy"};
+            foreach(string name in music)
+            {
+                var clip=Resources.Load<AudioClip>("BearAudio/"+name);
+                Check(clip!=null && clip.channels==2 && clip.frequency==44100 && clip.length>30,"complete stereo music master "+name);
+                Check(clip.loadType==AudioClipLoadType.Streaming,"mobile music uses streaming "+name);
+            }
+            var clips=Resources.LoadAll<AudioClip>("BearAudio");
+            Check(clips.Length==27,"six music loops and 21 effects imported");
+            foreach(var clip in clips)
+            {
+                if(music.Contains(clip.name))continue;
+                Check(clip.channels==1 && clip.loadType==AudioClipLoadType.DecompressOnLoad && clip.length<2,"short mono effect import "+clip.name);
+                var samples=new float[clip.samples];
+                Check(clip.GetData(samples,0),"effect samples available without streaming delay "+clip.name);
+                float peak=0;foreach(float sample in samples)peak=Mathf.Max(peak,Mathf.Abs(sample));
+                Check(peak>.01f && peak<.5f,"effect contains audio with headroom "+clip.name);
+            }
+            Debug.Log("AUDIO ASSETS: six 44.1kHz stereo streaming loops and 21 preloaded mono effects, non-silent PCM and headroom PASS");
         }
         private static CandyBreakoutSimulation CollisionBoard(Vector2 position, Vector2 velocity, int kind = 0, int hp = 10000)
         {
@@ -238,6 +261,25 @@ namespace ClawbearGames.EditorTools
             Vector2 originalReference=originalScaler.referenceResolution;
             float originalMatch=originalScaler.matchWidthOrHeight;
             CandyBreakoutValidation.Check(views != null && views.ActiveViewType == ViewType.HOME_VIEW, "home boot");
+            var audioManager=ServicesManager.Instance.SoundManager;
+            var homeMusic=(AudioSource)PrivateField(audioManager,"musicSource").GetValue(audioManager);
+            var soundEffects=(AudioSource)PrivateField(audioManager,"soundSource").GetValue(audioManager);
+            CandyBreakoutValidation.Check(homeMusic.clip!=null && homeMusic.clip.name=="HomeLoop" && homeMusic.loop && homeMusic.isPlaying,"home music is bound and playing");
+            CandyBreakoutValidation.Check(Mathf.Approximately(homeMusic.volume,PlayerDataHandler.GetMusicValue()*audioManager.MusicMixGain) && audioManager.MusicMixGain==.25f,"background music uses quieter base mix without changing player setting");
+            CandyBreakoutValidation.Check(soundEffects.ignoreListenerPause && !homeMusic.ignoreListenerPause,"pause UI remains audible while music pauses");
+            CandyBreakoutValidation.Check(audioManager.Button.name=="UI_Click" && audioManager.LevelCompleted.name=="LevelComplete","retained scene audio references use new theme");
+            for(int cue=0;cue<(int)GameSoundCue.Count;cue++)CandyBreakoutValidation.Check(audioManager.GetCue((GameSoundCue)cue)!=null,"every theme cue is resolved");
+            float savedSound=PlayerDataHandler.GetSoundValue(),savedMusic=PlayerDataHandler.GetMusicValue();
+            try
+            {
+                PlayerDataHandler.UpdateSoundValue(0);PlayerDataHandler.UpdateMusicValue(0);audioManager.UpdateVolumes();
+                audioManager.PlayCue(GameSoundCue.UiClick);
+                CandyBreakoutValidation.Check(soundEffects.volume==0 && homeMusic.volume==0,"existing sound/music settings mute new audio");
+            }
+            finally
+            {
+                PlayerDataHandler.UpdateSoundValue(savedSound);PlayerDataHandler.UpdateMusicValue(savedMusic);audioManager.UpdateVolumes();
+            }
             yield return CheckServiceLifetimes();
             var menu=FindObjectOfType<BearHomeMenuController>();
             foreach(int page in new[]{0,1,2,3,4})
@@ -266,6 +308,8 @@ namespace ClawbearGames.EditorTools
             var game = IngameManager.Instance;
             CandyBreakoutValidation.Check(game != null && game.Board != null && views.ActiveViewType == ViewType.INGAME_VIEW, "start selected breakout level");
             CandyBreakoutValidation.Check(!game.IsRoundStarted && game.Board.Elapsed == 0, "intro blocks simulation");
+            var roundMusic=(AudioSource)PrivateField(audioManager,"musicSource").GetValue(audioManager);
+            CandyBreakoutValidation.Check(roundMusic.clip!=null && roundMusic.clip.name=="CandyDay","first game music reference uses new theme");
             var begin = views.IngameViewController.GetComponentsInChildren<Button>(true).Single(x => x.name == "Begin");
             begin.onClick.Invoke();
             yield return new WaitForSecondsRealtime(.2f);
@@ -370,6 +414,7 @@ namespace ClawbearGames.EditorTools
             views.IngameViewController.GetComponentsInChildren<Button>(true).Single(x=>x.name=="Begin").onClick.Invoke();
             yield return new WaitForSecondsRealtime(.2f);
             Render(views.IngameViewController.gameObject,"polished-boss.png",1080,1920);
+            CandyBreakoutValidation.Check(roundMusic.clip!=null && roundMusic.clip.name=="BigCandy","boss uses gentle dedicated loop");
             views.IngameViewController.GetComponent<BearPausePanel>().ReturnHome();
             yield return new WaitForSecondsRealtime(2);
             CandyBreakoutValidation.Check(views.ActiveViewType == ViewType.HOME_VIEW && IngameManager.Instance == null && Time.timeScale == 1, "return home restores state");
@@ -466,19 +511,50 @@ namespace ClawbearGames.EditorTools
             var sound=audioObject.AddComponent<SoundManager>();
             PrivateField(sound,"musicSource").SetValue(sound,music);PrivateField(sound,"soundSource").SetValue(sound,effects);
             var clipA=AudioClip.Create("transition A",48000,1,48000,false);var clipB=AudioClip.Create("transition B",48000,1,48000,false);
+            float originalMusic=PlayerDataHandler.GetMusicValue();
             try
             {
                 sound.PlayMusic(clipA,.02f);sound.StopMusic(.08f);sound.PlayMusic(clipB,.03f);
                 yield return new WaitForSecondsRealtime(.14f);
-                CandyBreakoutValidation.Check(music.clip==clipB && music.isPlaying && Mathf.Approximately(music.volume,PlayerDataHandler.GetMusicValue()),"old music fade cannot stop a newer track");
+                float fullMusic=PlayerDataHandler.GetMusicValue()*sound.MusicMixGain;
+                CandyBreakoutValidation.Check(music.clip==clipB && music.isPlaying && Mathf.Approximately(music.volume,fullMusic),"old music fade cannot stop a newer track or bypass music mix gain");
+                sound.PlayCue(GameSoundCue.BrickHit);
+                yield return new WaitForSecondsRealtime(.045f);
+                CandyBreakoutValidation.Check(music.volume<fullMusic*.85f && PlayerDataHandler.GetMusicValue()==originalMusic,"collision ducks music without modifying saved volume");
+                for(int i=0;i<4;i++){sound.PlayCue(GameSoundCue.BrickBreak);yield return new WaitForSecondsRealtime(.04f);}
+                float duckGain=(float)PrivateField(sound,"collisionMusicGain").GetValue(sound);
+                CandyBreakoutValidation.Check(music.volume>=fullMusic*duckGain-.001f,"repeated collisions hold one duck instead of multiplying attenuation");
+                yield return new WaitForSecondsRealtime(.42f);
+                CandyBreakoutValidation.Check(Mathf.Approximately(music.volume,fullMusic),"music smoothly returns to its quieter mix after collisions");
+                float originalSound=PlayerDataHandler.GetSoundValue();
+                try
+                {
+                    PlayerDataHandler.UpdateSoundValue(0);sound.UpdateVolumes();sound.PlayCue(GameSoundCue.BrickHit);
+                    yield return new WaitForSecondsRealtime(.06f);
+                    CandyBreakoutValidation.Check(Mathf.Approximately(music.volume,fullMusic),"muted collisions do not duck music");
+                }
+                finally {PlayerDataHandler.UpdateSoundValue(originalSound);sound.UpdateVolumes();}
+                sound.PlayMusic(clipA,.25f);
+                var outgoing=PrivateField(sound,"outgoingMusic").GetValue(sound) as AudioSource;
+                bool previousListenerPause=AudioListener.pause;
+                try
+                {
+                    AudioListener.pause=true;
+                    PlayerDataHandler.UpdateMusicValue(0);sound.UpdateVolumes();
+                    CandyBreakoutValidation.Check(music.volume==0 && (outgoing==null || outgoing.volume==0),"mute immediately affects both crossfade sources even while paused");
+                }
+                finally { AudioListener.pause=previousListenerPause; }
+                yield return new WaitForSecondsRealtime(.06f);
+                CandyBreakoutValidation.Check(music.volume==0 && (outgoing==null || outgoing.volume==0),"crossfade cannot restore audio after mute");
+                PlayerDataHandler.UpdateMusicValue(originalMusic);sound.UpdateVolumes();
                 sound.PauseMusic(.02f);yield return new WaitForSecondsRealtime(.05f);
                 sound.ResumeMusic(.03f);yield return new WaitForSecondsRealtime(.06f);
                 CandyBreakoutValidation.Check(music.isPlaying,"music pause/resume preserved");
                 sound.StopMusic(.2f);sound.enabled=false;
                 CandyBreakoutValidation.Check(PrivateField(sound,"musicFade").GetValue(sound)==null,"disabled sound owner cancels transition coroutine");
             }
-            finally { DestroyImmediate(audioObject);DestroyImmediate(clipA);DestroyImmediate(clipB); }
-            Debug.Log("LIFECYCLE: singleton ownership, stable layout"+(allocationCounter?" "+layoutBytes+" B":" (allocation counter unavailable)")+", IAP task coalescing, ad retry cleanup, leaderboard parsing, daily rollover, interrupted music and pause/resume PASS");
+            finally { PlayerDataHandler.UpdateMusicValue(originalMusic);DestroyImmediate(audioObject);DestroyImmediate(clipA);DestroyImmediate(clipB); }
+            Debug.Log("LIFECYCLE: singleton ownership, stable layout"+(allocationCounter?" "+layoutBytes+" B":" (allocation counter unavailable)")+", IAP task coalescing, ad retry cleanup, leaderboard parsing, daily rollover, quieter music mix, collision duck/recovery, mute, interrupted music and pause/resume PASS");
         }
         private static void TouchAt(Touchscreen device, Vector2 point, UnityEngine.InputSystem.TouchPhase phase)
             => InputSystem.QueueStateEvent(device,new TouchState { touchId=1,position=point,phase=phase });
