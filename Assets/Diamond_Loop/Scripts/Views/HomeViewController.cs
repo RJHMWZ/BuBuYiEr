@@ -22,8 +22,6 @@ namespace ClawbearGames
         [SerializeField] private RectTransform gameNameTrans = null;
         [SerializeField] private RectTransform playButtonTrans = null;
         [SerializeField] private RectTransform warningSignTrans = null;
-        [SerializeField] private RectTransform watchAdButton = null;
-        [SerializeField] private RectTransform watchAdTarget = null;
         [SerializeField] private RectTransform totalCoinTarget = null;
         [SerializeField] private Text currentLevelText = null;
         [SerializeField] private Text totalCoinsText = null;
@@ -139,8 +137,6 @@ namespace ClawbearGames
             int timeRemains = ServicesManager.Instance.DailyRewardManager.TimeRemainsTillNextReward();
             warningSignTrans.gameObject.SetActive((timeRemains == 0) ? true : false);
 
-            //Handle watch ad buton
-            watchAdButton.gameObject.SetActive(ServicesManager.Instance.AdManager.IsRewardedAdReady());
         }
 
 
@@ -164,15 +160,6 @@ namespace ClawbearGames
 
 
 
-        /// <summary>
-        /// Callback whehn user closed rewarded ad.
-        /// </summary>
-        /// <param name="coinAmount"></param>
-        public void RewardedAdCallback(int coinAmount)
-        {
-            ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Rewarded);
-            CreateCoinEffect(coinAmount, watchAdTarget);
-        }
 
 
         /// <summary>
@@ -204,7 +191,7 @@ namespace ClawbearGames
         public void OnClickShopButton()
         {
             ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Button);
-            ViewManager.Instance.OnShowView(ViewType.IAP_VIEW);
+            ViewManager.Instance.OnShowView(ViewType.SHOP_VIEW);
         }
 
         public void OnClickSettingButton()
@@ -215,11 +202,5 @@ namespace ClawbearGames
         }
 
 
-        public void OnClickWatchAdButton()
-        {
-            ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Button);
-            ServicesManager.Instance.AdManager.ShowRewardedAd(RewardedAdTarget.GET_FREE_COINS);
-            watchAdButton.gameObject.SetActive(false);
-        }
     }
 }

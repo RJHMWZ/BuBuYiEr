@@ -15,10 +15,10 @@ MonoBehaviour:
   levelNumber: 82
   columns: 9
   rows: 7
-  brickHealth: 22
-  pattern: 1
+  brickHealth: 15
+  pattern: 2
   boss: 0
-  startingHoney: 576
-  coinReward: 435
-  threeStarTime: 264
-  twoStarTime: 426
+  startingHoney: 213
+  coinReward: 70
+  threeStarTime: 85
+  twoStarTime: 144.5

@@ -46,6 +46,9 @@ namespace ClawbearGames
         public readonly List<Ball> Balls = new List<Ball>(BallLimit);
         public readonly List<Spark> Sparks = new List<Spark>(240);
         public readonly int[] Counts = new int[6], Upgrades = new int[6];
+        public readonly int ReachedLevel;
+        public readonly bool[] UsedSupport = new bool[3];
+        public float WindRemaining { get; private set; }
         public int Honey { get; private set; }
         public int Destroyed { get; private set; }
         public int ClickLevel { get; private set; }
@@ -60,8 +63,9 @@ namespace ClawbearGames
         private const float ContactSkin = .02f;
         private readonly System.Random random;
 
-        public CandyBreakoutSimulation(LevelData level)
+        public CandyBreakoutSimulation(LevelData level, int reachedLevel = -1)
         {
+            ReachedLevel = reachedLevel < 1 ? Mathf.Max(1, level.levelNumber) : reachedLevel;
             random = new System.Random(level.levelNumber * 7919);
             Honey = Mathf.Max(0, level.startingHoney);
             int cols = Mathf.Clamp(level.columns, 5, 10), rows = Mathf.Clamp(level.rows, 4, 9);
@@ -71,7 +75,11 @@ namespace ClawbearGames
             {
                 bool gap = level.pattern == 1 && (x + y) % 5 == 0 ||
                     level.pattern == 2 && x > 1 && x < cols - 2 && y > 1 && y < rows - 2 ||
-                    level.pattern == 3 && ((y % 2 == 0 && x == cols / 2) || (y % 2 == 1 && (x == 0 || x == cols - 1)));
+                    level.pattern == 3 && ((y % 2 == 0 && x == cols / 2) || (y % 2 == 1 && (x == 0 || x == cols - 1))) ||
+                    level.pattern == 4 && Mathf.Abs(x - (cols - 1) * .5f) > 1 + y * .65f ||
+                    level.pattern == 5 && y % 3 == 1 && x % 3 == 1 ||
+                    level.pattern == 6 && Mathf.Abs(x - (cols - 1) * .5f) + Mathf.Abs(y - (rows - 1) * .5f) > (cols + rows) * .33f ||
+                    level.pattern == 7 && (x + y * 2) % 4 == 0;
                 if (gap) continue;
                 int hp = Mathf.Max(1, level.brickHealth + (rows - y - 1) / 2);
                 Bricks.Add(new Brick { Bounds = new Rect(40 + x * cellW + 3, 55 + y * 49, cellW - 6, 41),
@@ -89,16 +97,17 @@ namespace ClawbearGames
         public int UpgradeCost(int kind) => Mathf.CeilToInt((35 + kind * 18) * Mathf.Pow(1.65f, Upgrades[kind]));
         public int ClickCost => Mathf.CeilToInt(30 * Mathf.Pow(1.8f, ClickLevel));
         public int Damage(int kind) => Powers[kind] * (1 + Upgrades[kind]);
+        public bool IsUnlocked(int kind) => CandyProgression.BallUnlocked(kind, ReachedLevel);
         public bool Buy(int kind)
         {
-            if (kind < 0 || kind >= 6 || Complete || Balls.Count >= BallLimit || Honey < BuyCost(kind)) return false;
+            if (!IsUnlocked(kind) || Complete || Balls.Count >= BallLimit || Honey < BuyCost(kind)) return false;
             Honey -= BuyCost(kind);
             Spawn(kind);
             return true;
         }
         public bool Upgrade(int kind)
         {
-            if (kind < 0 || kind >= 6 || Complete || Counts[kind] == 0 || Upgrades[kind] >= UpgradeLimit || Honey < UpgradeCost(kind)) return false;
+            if (!IsUnlocked(kind) || Complete || Counts[kind] == 0 || Upgrades[kind] >= UpgradeLimit || Honey < UpgradeCost(kind)) return false;
             Honey -= UpgradeCost(kind);
             Upgrades[kind]++;
             foreach (Ball ball in Balls)
@@ -112,7 +121,24 @@ namespace ClawbearGames
             ClickLevel++;
             return true;
         }
-        private float Speed(int kind) => Speeds[kind] * (1 + Upgrades[kind] * .06f);
+        private float Speed(int kind) => Speeds[kind] * (1 + Upgrades[kind] * .06f) * (WindRemaining > 0 ? 1.35f : 1);
+        public bool CanUseSupport(int kind) => kind >= 0 && kind < 3 && !Complete && !UsedSupport[kind];
+        public bool UseSupport(int kind)
+        {
+            if (!CanUseSupport(kind)) return false;
+            UsedSupport[kind] = true;
+            if (kind == 0) Honey = (int)Math.Min(int.MaxValue, (long)Honey + 120);
+            else if (kind == 1)
+            {
+                foreach (var brick in Bricks) if (brick.Alive) Hurt(brick, Mathf.Max(2, Mathf.CeilToInt(brick.MaxHealth * .3f)));
+            }
+            else
+            {
+                WindRemaining = 12;
+                foreach (var ball in Balls) ball.Velocity = ball.Velocity.normalized * Speed(ball.Kind);
+            }
+            return true;
+        }
         private void Spawn(int kind)
         {
             float angle = (float)(random.NextDouble() * 1.8 + .65);
@@ -146,6 +172,12 @@ namespace ClawbearGames
         private void Tick(float delta)
         {
             Elapsed += delta;
+            if (WindRemaining > 0)
+            {
+                WindRemaining = Mathf.Max(0, WindRemaining - delta);
+                if (WindRemaining <= 0)
+                    foreach (var ball in Balls) ball.Velocity = ball.Velocity.normalized * Speed(ball.Kind);
+            }
             foreach (Brick brick in Bricks)
             {
                 brick.Flash = Mathf.Max(0, brick.Flash - delta);

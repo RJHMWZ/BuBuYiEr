@@ -7,7 +7,6 @@ namespace ClawbearGames
     {
         public static ViewManager Instance { private set; get; }
 
-        [SerializeField] private IAPViewController iAPViewControllerPrefab = null;
         [SerializeField] private HomeViewController homeViewControllerPrefab = null;
         [SerializeField] private HomeViewController sceneHomeViewController = null;
         [SerializeField] private LeaderboardViewController leaderboardViewControllerPrefab = null;
@@ -18,7 +17,6 @@ namespace ClawbearGames
         [SerializeField] private LevelViewController levelViewControllerPrefab = null;
         [SerializeField] private EventSystem eventSystemPrefab = null;
         [SerializeField] private EventSystem sceneEventSystem = null;
-        public IAPViewController IAPViewController { private set; get; }
         public HomeViewController HomeViewController { private set; get; }
         public LeaderboardViewController LeaderboardViewController { private set; get; }
         public DailyRewardViewController DailyRewardViewController { private set; get; }
@@ -51,7 +49,6 @@ namespace ClawbearGames
                 //Instantiate the views
                 if (transform.childCount == 0)
                 {
-                    IAPViewController = CreateView(iAPViewControllerPrefab);
                     HomeViewController = CreateView(homeViewControllerPrefab, sceneHomeViewController);
                     LeaderboardViewController = CreateView(leaderboardViewControllerPrefab);
                     DailyRewardViewController = CreateView(dailyRewardViewControllerPrefab);
@@ -88,6 +85,12 @@ namespace ClawbearGames
         /// <param name="sceneName"></param>
         public void OnShowView(ViewType viewType)
         {
+            if (viewType == ViewType.SHOP_VIEW)
+            {
+                OnShowView(ViewType.HOME_VIEW);
+                HomeViewController.GetComponent<BearHomeMenuController>()?.OpenPage(3);
+                return;
+            }
             if (currentViewController != null)
             {
                 currentViewController.OnClose();
@@ -96,7 +99,6 @@ namespace ClawbearGames
             BaseViewController next;
             switch (viewType)
             {
-                case ViewType.IAP_VIEW: next = IAPViewController; break;
                 case ViewType.HOME_VIEW: next = HomeViewController; break;
                 case ViewType.LEADERBOARD_VIEW: next = LeaderboardViewController; break;
                 case ViewType.DAILY_REWARD_VIEW: next = DailyRewardViewController; break;

@@ -14,8 +14,7 @@ namespace ClawbearGames
         public Sprite[] collectionSprites;
         public Font chineseFont;
         public Font numberFont;
-        [Tooltip("对应新人、金币、爱心、装饰券、图鉴券。留空时不会发起购买。")]
-        public string[] productIds = new string[5];
+        public BearShopCatalog shopCatalog;
         public string privacyUrl;
         public string supportUrl;
         private Dictionary<string, Sprite> lookup;
@@ -25,6 +24,8 @@ namespace ClawbearGames
 
         public Sprite Get(string name)
         {
+            if (name == "Daily/IconCoin") name = "IconCoin";
+            if (name == "Daily/IconLove") name = "IconLove";
             if (lookup == null)
             {
                 lookup = new Dictionary<string, Sprite>();

@@ -16,9 +16,9 @@ MonoBehaviour:
   columns: 7
   rows: 4
   brickHealth: 2
-  pattern: 1
+  pattern: 0
   boss: 0
-  startingHoney: 96
-  coinReward: 35
-  threeStarTime: 104
-  twoStarTime: 186
+  startingHoney: 93
+  coinReward: 30
+  threeStarTime: 35
+  twoStarTime: 59.5

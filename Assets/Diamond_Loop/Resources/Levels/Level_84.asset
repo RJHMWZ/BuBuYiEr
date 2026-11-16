@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ClawbearGames.LevelData
   levelNumber: 84
   columns: 9
-  rows: 5
-  brickHealth: 22
-  pattern: 3
+  rows: 8
+  brickHealth: 15
+  pattern: 0
   boss: 0
-  startingHoney: 588
-  coinReward: 445
-  threeStarTime: 268
-  twoStarTime: 432
+  startingHoney: 219
+  coinReward: 70
+  threeStarTime: 85
+  twoStarTime: 144.5

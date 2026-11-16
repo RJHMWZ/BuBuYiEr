@@ -19,6 +19,10 @@ namespace ClawbearGames
         public string TimeOfLastReward = string.Empty;
         public List<StarData> ListStarData = new List<StarData>();
         public List<string> ListPurchasedProduct = new List<string>();
+        public List<BearInventoryEntry> ShopInventory = new List<BearInventoryEntry>();
+        public string EquippedDecoration = string.Empty;
+        public string EquippedBallSkin = string.Empty;
+        public List<int> ClaimedJourneyRewards = new List<int>();
         public int SlotCount = 0;
         public int MagnetCount = 0;
         public int HammerCount = 0;

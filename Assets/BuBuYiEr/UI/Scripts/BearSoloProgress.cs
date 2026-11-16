@@ -6,11 +6,12 @@ namespace ClawbearGames
     {
         private static int cachedRequest = -1, cachedLevel = 1;
         public static int PendingStory = -1;
+        public static int PendingBall = -1;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetSession()
         {
-            cachedRequest = -1; cachedLevel = 1; PendingStory = -1;
+            cachedRequest = -1; cachedLevel = 1; PendingStory = -1; PendingBall = -1;
         }
 
         public static int PlayableLevel(int requested)

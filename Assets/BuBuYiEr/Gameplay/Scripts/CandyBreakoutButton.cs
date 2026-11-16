@@ -12,6 +12,7 @@ namespace ClawbearGames
         public Text caption, price;
         public bool primary, emphasized;
         private float animationTime;
+        private float availablePulse;
         private bool pressed, available, wasMastered;
         private Color fill;
         private static readonly Color MutedInk = new Color32(137, 116, 97, 255);
@@ -22,6 +23,7 @@ namespace ClawbearGames
             caption.text = title;
             if (price != null) price.text = amount;
             if (available == enabled && fill == tint && face.color.a > 0 && wasMastered == mastered) return;
+            if(enabled && !available) availablePulse=.28f;
             available = enabled;
             wasMastered = mastered;
             fill = tint;
@@ -33,7 +35,7 @@ namespace ClawbearGames
             caption.color = price != null ? enabled ? BearGameTheme.Brown : MutedInk : BearGameTheme.Brown;
             if (price != null) price.color = enabled ? BearGameTheme.Brown : MutedInk;
             face.SetVerticesDirty();
-            if (!enabled) pressed = false;
+            if (!enabled) { pressed = false; availablePulse = 0; }
         }
         public void OnPointerDown(PointerEventData e) { if (button.IsInteractable()) pressed = true; }
         public void OnPointerUp(PointerEventData e) => pressed = false;
@@ -42,14 +44,17 @@ namespace ClawbearGames
         {
             pressed = false;
             animationTime = 0;
+            availablePulse = 0;
             if (face != null) face.rectTransform.localScale = Vector3.one;
         }
         private void Update()
         {
             if (face == null || Time.timeScale <= 0 || (IngameManager.Instance != null && IngameManager.Instance.IsPaused)) return;
             animationTime += Time.deltaTime;
+            availablePulse=Mathf.Max(0,availablePulse-Time.deltaTime);
             float wave = available && (primary || emphasized) ? (Mathf.Sin(animationTime * 2.4f) + 1) * .5f : 0;
-            float scale = pressed ? .965f : 1 + wave * (primary ? .008f : .004f);
+            float scale = pressed ? .965f : 1 + wave * (primary ? .008f : .004f)
+                + Mathf.Sin(availablePulse/.28f*Mathf.PI)*.025f;
             face.rectTransform.localScale = Vector3.Lerp(face.rectTransform.localScale, Vector3.one * scale,
                 1 - Mathf.Exp(-Time.deltaTime * 24));
             if (sheen != null)

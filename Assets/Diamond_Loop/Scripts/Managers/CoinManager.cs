@@ -15,6 +15,7 @@ namespace ClawbearGames
         [SerializeField] private int maxRewardedCoins = 150;
 
         public int InitialCoins => initialCoins;
+        public void NotifyBalanceChanged() => TotalCoinChanged?.Invoke(TotalCoins);
         public int CollectedCoins { private set; get; }
 
 

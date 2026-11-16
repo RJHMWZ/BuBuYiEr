@@ -6,8 +6,6 @@ namespace ClawbearGames
     {
         public static ServicesManager Instance { private set; get; }
 
-        [SerializeField] private IAPManager iAPManager = null;
-        [SerializeField] private AdManager adManager = null;
         [SerializeField] private SoundManager soundManager = null;
         [SerializeField] private CoinManager coinManager = null;
         [SerializeField] private ShareManager shareManager = null;
@@ -15,8 +13,6 @@ namespace ClawbearGames
         [SerializeField] private LeaderboardManager leaderboardManager = null;
         [SerializeField] private NotificationManager notificationManager = null;
 
-        public IAPManager IAPManager => iAPManager;
-        public AdManager AdManager => adManager;
         public SoundManager SoundManager => soundManager;
         public CoinManager CoinManager => coinManager;
         public ShareManager ShareManager => shareManager;

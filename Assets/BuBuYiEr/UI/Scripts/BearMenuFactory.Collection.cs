@@ -15,6 +15,7 @@ namespace ClawbearGames
                 else Object.DestroyImmediate(child);
             }
             Collection(menu, frame);
+            frame.GetComponent<BearMenuLayout>().CaptureDesign();
         }
 
         private static void Collection(BearHomeMenuController menu, Transform frame)
@@ -35,18 +36,6 @@ namespace ClawbearGames
             Picture(menu, footer, "GrassGround", "GrassGround", -20, 0, 981, 144);
             Picture(menu, footer, "LeftFlowers", "BushL", -40, 0, 300, 140);
             Picture(menu, footer, "RightFlowers", "BushR", 681, 0, 300, 140);
-            Picture(menu, frame, "BackPaper", "TopUIBg", 25, 22, 225, 88).type = Image.Type.Sliced;
-            Image back = Picture(menu, frame, "BackArrow", "Setting/IconArrow", 51, 42, 27, 42);
-            CenterImage(back);
-            back.rectTransform.localEulerAngles = new Vector3(0, 0, 180);
-            Label(menu, frame, "BackLabel", "返回", 95, 29, 126, 66, 43);
-            Hotspot(frame, "Back", 25, 22, 225, 88, "page", 0);
-            Picture(menu, frame, "CoinsPaper", "TopUIBg", 572, 22, 340, 88).type = Image.Type.Sliced;
-            Picture(menu, frame, "PawCoin", "IconCoin", 582, 18, 88, 86);
-            menu.coinTexts[2] = Label(menu, frame, "LiveCoins", "0", 679, 37, 154, 63, 51, true);
-            Picture(menu, frame, "AddIcon", "IconAdd", 833, 19, 84, 85);
-            Hotspot(frame, "AddCoins", 833, 19, 84, 85, "page", 3);
-
             Picture(menu, frame, "RoomWindow", "Window", 211, 126, 518, 244);
             Picture(menu, frame, "CurtainLeft", "CurtainL", 141, 122, 150, 241);
             Picture(menu, frame, "CurtainRight", "CurtainR", 616, 122, 151, 241);
@@ -59,35 +48,32 @@ namespace ClawbearGames
             Picture(menu, frame, "TitleBook", "IconHandBook", 233, 168, 100, 90).preserveAspect = true;
             Label(menu, frame, "Title", "图鉴收藏", 342, 157, 349, 112, 65);
             Picture(menu, frame, "CollectionLibrary", "Setting/UIBg", 26, 398, 889, 1166).type = Image.Type.Sliced;
-            panel.tabArtwork = new Image[3];
-            string[] tabNames = { "表情", "故事", "动画" };
-            string[] tabIcons = { "BearWhite", "IconHandBook", "IconLove" };
-            for (int i = 0; i < 3; i++)
+            panel.tabArtwork = new Image[4];
+            string[] tabNames = { "表情", "故事", "伙伴", "旅程" };
+            string[] tabIcons = { "BearWhite", "IconHandBook", "Sugar1", "IconStar" };
+            for (int i = 0; i < 4; i++)
             {
-                RectTransform tab = Node(frame, "CollectionTab" + i, 66 + i * 276, 331, 258, 103);
-                panel.tabArtwork[i] = Picture(menu, tab, "TabPaper", i == 1 ? "Shop/TabSelected" : "Shop/TabNormal", 0, 0, 258, i == 1 ? 103 : 82);
+                RectTransform tab = Node(frame, "CollectionTab" + i, 53 + i * 212, 331, 200, 103);
+                panel.tabArtwork[i] = Picture(menu, tab, "TabPaper", i == 1 ? "Shop/TabSelected" : "Shop/TabNormal", 0, 0, 200, i == 1 ? 103 : 82);
                 panel.tabArtwork[i].type = Image.Type.Sliced;
-                Picture(menu, tab, "TabIcon", tabIcons[i], 27, 15, 58, 54).preserveAspect = true;
-                Label(menu, tab, "Label", tabNames[i], 94, 5, 137, 67, 43);
+                Picture(menu, tab, "TabIcon", tabIcons[i], 18, 18, 48, 48).preserveAspect = true;
+                Label(menu, tab, "Label", tabNames[i], 68, 7, 114, 67, 37);
                 Action(tab, "collection-tab", i);
             }
             panel.countText = Label(menu, frame, "CollectionProgress", "", 78, 437, 785, 43, 27);
-            panel.tabRoots = new GameObject[3];
+            panel.tabRoots = new GameObject[4];
             RectTransform expressionRoot = Node(frame, "ExpressionShelf", 0, 0, 941, 1672);
             RectTransform storyRoot = Node(frame, "StoryShelf", 0, 0, 941, 1672);
-            RectTransform animationRoot = Node(frame, "AnimationShelf", 0, 0, 941, 1672);
+            RectTransform ballRoot = Node(frame, "BallShelf", 0, 0, 941, 1672);
+            RectTransform journeyRoot = Node(frame, "JourneyShelf", 0, 0, 941, 1672);
             panel.tabRoots[0] = expressionRoot.gameObject;
             panel.tabRoots[1] = storyRoot.gameObject;
-            panel.tabRoots[2] = animationRoot.gameObject;
+            panel.tabRoots[2] = ballRoot.gameObject;
+            panel.tabRoots[3] = journeyRoot.gameObject;
             BuildStoryShelf(menu, panel, storyRoot);
             BuildExpressionShelf(menu, panel, expressionRoot);
-            Picture(menu, animationRoot, "BookOfMemories", "IconHandBook", 330, 645, 281, 265).preserveAspect = true;
-            Picture(menu, animationRoot, "TinyMoon", "Collect/IconMoon", 619, 606, 79, 83).preserveAspect = true;
-            Label(menu, animationRoot, "EmptyTitle", "还没有动态回忆", 145, 957, 651, 73, 44);
-            Label(menu, animationRoot, "EmptyHint", "先去看看已收集的故事和表情吧", 116, 1057, 709, 85, 30);
-            Hotspot(animationRoot, "BrowseStories", 287, 1211, 367, 98, "collection-tab", 1);
-            Picture(menu, animationRoot, "BrowseButton", "Shop/BuyButton", 287, 1211, 367, 98).type = Image.Type.Sliced;
-            Label(menu, animationRoot, "BrowseLabel", "去看故事", 297, 1211, 347, 98, 39);
+            BuildBallShelf(menu,panel,ballRoot);
+            BuildJourneyShelf(menu,panel,journeyRoot);
             BuildCollectionDetails(menu, panel, frame);
             Picture(menu, frame, "BottomBow", "Setting/Decoration1", 364, 1513, 213, 116);
             panel.SelectTab(1);
@@ -113,13 +99,14 @@ namespace ClawbearGames
 
         private static void BuildStoryShelf(BearHomeMenuController menu, BearCollectionPanel panel, Transform root)
         {
-            RectTransform content = CollectionViewport(root, "StoryViewport", 4);
-            panel.storyArtwork = new Image[8];
-            panel.storyStates = new Text[8];
-            panel.storyLocks = new GameObject[8];
-            panel.storyHighlights = new GameObject[8];
+            int count=BearCollectionPanel.StoryTitles.Length;
+            RectTransform content = CollectionViewport(root, "StoryViewport", (count+1)/2);
+            panel.storyArtwork = new Image[count];
+            panel.storyStates = new Text[count];
+            panel.storyLocks = new GameObject[count];
+            panel.storyHighlights = new GameObject[count];
             string[] icons = { "IconFlower", "IconStar", "IconHeart", "IconFlower", "IconStar", "IconHeart", "IconStar", "IconMoon" };
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < count; i++)
             {
                 RectTransform card = Node(content, "Story" + i, i % 2 * 420 + 5, i / 2 * 320 + 5, 388, 300);
                 BearMenuShape outline = Shape(card, "SelectedOutline", -4, -4, 396, 308, 43, Color.clear, Color.clear, 5);
@@ -133,7 +120,7 @@ namespace ClawbearGames
                 Picture(menu, card, "TitlePaper", "Setting/ChoicBg", 39, 248, 310, 41).type = Image.Type.Sliced;
                 Label(menu, card, "StoryTitle", BearCollectionPanel.StoryTitles[i], 44, 246, 300, 45, 32);
                 Picture(menu, card, "PaperTape", i % 2 == 0 ? "Collect/TapePink" : "Collect/TapeYellow", 0, -4, 79, 72).preserveAspect = true;
-                Picture(menu, card, "CornerSticker", "Collect/" + icons[i], 337, 251, 47, 45).preserveAspect = true;
+                Picture(menu, card, "CornerSticker", "Collect/" + icons[i%icons.Length], 337, 251, 47, 45).preserveAspect = true;
                 RectTransform locked = Node(card, "LockedArtwork", 121, 94, 145, 126);
                 Shape(locked, "LockPaper", 29, 18, 87, 90, 30, new Color(1, .96f, .88f, .91f), new Color(1, .94f, .86f, .91f), 0);
                 Picture(menu, locked, "Lock", "Collect/IconLock", 45, 28, 55, 73).preserveAspect = true;
@@ -173,6 +160,10 @@ namespace ClawbearGames
             Shape(detail, "PhotoFrame", 19, 22, 276, 288, 26, Cream, new Color32(255, 236, 214, 255), 3);
             panel.detailImage = Picture(menu, detail, "SelectedPicture", "Collect/MilkTea", 31, 34, 252, 262);
             CenterImage(panel.detailImage);
+            panel.detailBall=Shape(detail,"SelectedBall",65,78,184,184,92,Gold,Gold,5);
+            panel.detailBall.enabled=false;
+            var detailPortrait=Node(panel.detailBall.transform,"Material",0,0,184,184).gameObject.AddComponent<CandyBallPortrait>();
+            detailPortrait.useEquippedSkin=true;detailPortrait.raycastTarget=false;
             panel.detailLock = Picture(menu, detail, "SelectedLock", "Collect/IconLock", 122, 122, 70, 95);
             CenterImage(panel.detailLock);
             Picture(menu, detail, "PhotoTape", "Collect/TapePink", 14, -6, 95, 86).preserveAspect = true;
@@ -187,6 +178,49 @@ namespace ClawbearGames
             panel.favoriteIcon.preserveAspect = true;
             panel.favoriteLabel = Label(menu, detail, "FavoriteLabel", "收藏", 655, 249, 127, 72, 30);
             panel.favoriteButton = Hotspot(detail, "FavoriteSelected", 600, 249, 194, 72, "collection-favorite");
+        }
+        private static void BuildBallShelf(BearHomeMenuController menu,BearCollectionPanel panel,Transform root)
+        {
+            RectTransform content=CollectionViewport(root,"BallViewport",3);
+            panel.ballArtwork=new BearMenuShape[6];panel.ballStates=new Text[6];
+            panel.ballLocks=new GameObject[6];panel.ballHighlights=new GameObject[6];
+            for(int i=0;i<6;i++)
+            {
+                RectTransform card=Node(content,"Companion"+i,5+i%2*420,5+i/2*320,388,300);
+                var outline=Shape(card,"Selected",-4,-4,396,308,43,Color.clear,Color.clear,5);
+                outline.borderColor=Gold;panel.ballHighlights[i]=outline.gameObject;
+                Picture(menu,card,"Paper","Collect/CardBg",4,4,380,292).type=Image.Type.Sliced;
+                Color tint=CandyBreakoutGraphic.CandyColors[i];
+                panel.ballArtwork[i]=Shape(card,"Ball",140,35,108,108,54,tint,tint,4);
+                panel.ballArtwork[i].enabled=false;
+                var portrait=Node(panel.ballArtwork[i].transform,"Material",0,0,108,108).gameObject.AddComponent<CandyBallPortrait>();
+                portrait.kind=i;portrait.useEquippedSkin=true;portrait.raycastTarget=false;
+                Label(menu,card,"Name",CandyBreakoutSimulation.Names[i],24,153,340,46,36);
+                Label(menu,card,"Ability",CandyBreakoutSimulation.Descriptions[i],24,202,340,36,28);
+                panel.ballStates[i]=Label(menu,card,"State","",18,249,352,37,25);
+                panel.ballLocks[i]=Picture(menu,card,"Lock","Collect/IconLock",169,70,50,66).gameObject;
+                Hotspot(card,"SelectCompanion",0,0,388,300,"collection-ball",i);
+            }
+        }
+        private static void BuildJourneyShelf(BearHomeMenuController menu,BearCollectionPanel panel,Transform root)
+        {
+            RectTransform content=CollectionViewport(root,"JourneyViewport",1);
+            content.parent.GetComponent<RectTransform>().sizeDelta=new Vector2(825,1000);
+            content.sizeDelta=new Vector2(825,CandyProgression.JourneyCount*207);
+            panel.journeyClaims=new Button[CandyProgression.JourneyCount];panel.journeyStates=new Text[CandyProgression.JourneyCount];
+            for(int i=0;i<CandyProgression.JourneyCount;i++)
+            {
+                RectTransform row=Node(content,"Milestone"+i,5,i*207,805,192);
+                Picture(menu,row,"Paper","Shop/RowBg",0,0,805,192).type=Image.Type.Sliced;
+                Picture(menu,row,"Badge",i<8?"IconLove":"IconStar",26,35,76,74).preserveAspect=true;
+                Label(menu,row,"Title",CandyProgression.JourneyTitle(i),123,22,650,48,33).alignment=TextAnchor.MiddleLeft;
+                panel.journeyStates[i]=Label(menu,row,"Progress","",123,84,410,70,27);
+                panel.journeyStates[i].alignment=TextAnchor.MiddleLeft;
+                var button=Node(row,"Claim",550,89,228,78);
+                Picture(menu,button,"Paper","Shop/BuyButton",0,0,228,78).type=Image.Type.Sliced;
+                Label(menu,button,"Label","",8,0,212,78,31);
+                panel.journeyClaims[i]=Action(button,"journey-claim",i);
+            }
         }
     }
 }

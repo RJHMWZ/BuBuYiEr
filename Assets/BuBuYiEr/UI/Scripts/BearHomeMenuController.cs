@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 namespace ClawbearGames
 {
@@ -35,6 +36,11 @@ namespace ClawbearGames
         [HideInInspector] public RectTransform[] shopProductRows;
         [HideInInspector] public Text shopCategoryHint;
         [HideInInspector] public Text[] storePrices;
+        public const int LayoutVersion = 5;
+        [HideInInspector] public int layoutVersion;
+        [HideInInspector] public BearMenuHeader header;
+        [HideInInspector] public RectTransform shopContent;
+        [HideInInspector] public GameObject shopEmpty;
         private HomeViewController owner;
         private int currentPage, currentShopTab;
         private float refreshAt;
@@ -49,8 +55,6 @@ namespace ClawbearGames
         public BearCollectionPanel CollectionPanel => pages != null && pages.Length > 2 && pages[2] != null
             ? pages[2].GetComponent<BearCollectionPanel>() : null;
         private const string Extras = "BUBU_UI_EXTRA_";
-        private static readonly string[] ShopPreviewPrices={"¥6","¥12","¥12","¥30","¥68"};
-        private static readonly float[] ShopRowPositions={651,947,1097,1247,1397};
         public void Show(HomeViewController view)
         {
             owner = view;
@@ -62,7 +66,7 @@ namespace ClawbearGames
                 transform.localScale = Vector3.one;
                 DontDestroyOnLoad(gameObject);
             }
-            if (themeRoot == null) BearMenuFactory.Build(this);
+            if (themeRoot == null || layoutVersion != LayoutVersion) BearMenuFactory.Build(this);
             if (themeRoot == null) return;
             BearMenuFactory.EnsureSoloActions(this);
             if (CollectionPanel == null || CollectionPanel.layoutVersion != BearCollectionPanel.LayoutVersion)
@@ -80,6 +84,11 @@ namespace ClawbearGames
             soundSlider.SetValueWithoutNotify(PlayerDataHandler.GetSoundValue());
             musicSlider.SetValueWithoutNotify(PlayerDataHandler.GetMusicValue());
             OpenPage(0);
+            if(BearSoloProgress.PendingBall>=0)
+            {
+                int ball=BearSoloProgress.PendingBall;BearSoloProgress.PendingBall=-1;BearSoloProgress.PendingStory=-1;
+                OpenPage(2);CollectionPanel?.SelectBall(ball);
+            }
             if (BearSoloProgress.PendingStory >= 0)
             {
                 int story = BearSoloProgress.PendingStory;
@@ -106,6 +115,11 @@ namespace ClawbearGames
         {
             if(preferencesDirty && Time.unscaledTime>=preferenceSaveAt)FlushPreferences();
             if (!subscribed || themeRoot == null || !themeRoot.gameObject.activeInHierarchy) return;
+            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                if (modal.activeSelf) modal.SetActive(false);
+                else if (currentPage != 0) OpenPage(0);
+            }
             if (Time.unscaledTime >= refreshAt) { refreshAt = Time.unscaledTime + 1; Refresh(); }
         }
 
@@ -125,6 +139,9 @@ namespace ClawbearGames
                 case "collection-tab": CollectionTab(argument); break;
                 case "collection-expression": CollectionPanel?.SelectExpression(argument); break;
                 case "collection-favorite": CollectionPanel?.ToggleFavorite(); break;
+                case "collection-ball": CollectionPanel?.SelectBall(argument); break;
+                case "journey-claim": CollectionPanel?.ClaimJourney(argument); Refresh(); break;
+                case "earn-coins": Message("获取金币", "通关糖砖关卡可以获得金币。\n每日奖励也能领取金币。\n\n攒下的金币可以在小铺兑换装扮、皮肤和道具。"); break;
                 case "shop-tab": ShopTab(argument); break;
                 case "buy": Buy(argument); break;
                 case "close-modal": modal.SetActive(false); break;
@@ -138,7 +155,7 @@ namespace ClawbearGames
                     ServicesManager.Instance.NotificationManager.SetNotificationsEnabled(!ServicesManager.Instance.NotificationManager.NotificationsEnabled);
                     Refresh(); break;
                 case "language": Message("语言", "当前界面语言：简体中文\n更多语言将在后续版本开放。"); break;
-                case "help": Message("游戏帮助", "点击糖砖，打碎后获得本关蜂蜜。\n购买六种小球，让它们自动弹跳。\n升级小球威力，清空糖砖即可通关。\n蜂蜜每关重新准备，通关金币存入钱包。\n\n每日奖励每隔 24 小时可领取一次。"); break;
+                case "help": Message("游戏帮助", "点击糖砖赚取本关蜂蜜，买球与升级，清空即通关。\n通关第 3、8、15、24、35 关，依次迎接新伙伴。\n蜂蜜每关重置；金币、解锁与收藏永久保留。\n每颗新星额外奖励 10 金币，重玩也有少量金币。\n小铺的摆件和外观可装备；道具每种每关可用一次。\n图鉴的旅程栏可领取进度与集星奖励。"); break;
                 case "about": Message("关于我们", "BuBuYiEr\n和小熊一起，收藏甜甜的每一天。\n\n版本 " + Application.version); break;
                 case "privacy": OpenLink(art.privacyUrl, "隐私政策", "隐私政策暂未发布。"); break;
                 case "support": OpenLink(art.supportUrl, "联系客服", "在线客服暂未开放。"); break;
@@ -151,8 +168,13 @@ namespace ClawbearGames
             currentPage = Mathf.Clamp(index, 0, pages.Length - 1);
             for (int i = 0; i < pages.Length; i++) pages[i].SetActive(i == currentPage);
             modal.SetActive(false);
+            header.ShowPage(currentPage);
             if (currentPage == 2) CollectionPanel?.Show();
-            if (currentPage == 3) ShopTab(0);
+            if (currentPage == 3)
+            {
+                BearMenuFactory.PopulateShop(this);
+                ShopTab(0);
+            }
             Refresh();
         }
 
@@ -164,7 +186,7 @@ namespace ClawbearGames
             for (int i = 0; i < coinTexts.Length; i++)
             {
                 coinTexts[i].text = value;
-                int normalSize = i == 0 ? 54 : i == 2 ? 48 : 51;
+                const int normalSize = 54;
                 coinTexts[i].fontSize = Mathf.RoundToInt(normalSize * Mathf.Min(1, 4.6f / value.Length));
             }
         }
@@ -175,6 +197,9 @@ namespace ClawbearGames
             int progressLevel = PlayerDataHandler.GetCurrentLevel();
             int playableLevel = BearSoloProgress.PlayableLevel(progressLevel);
             levelText.text = "Lv. " + playableLevel;
+            var journeyGoal=pages[0].transform.Find("JourneyGoal");
+            if(journeyGoal!=null)journeyGoal.GetComponent<Text>().text=CandyProgression.NextGoal(progressLevel);
+            CandyCosmetics.ApplyHome(this);
             if (soloPlayLabel != null)
                 soloPlayLabel.text = PlayerDataHandler.IsWatchedTutorial()
                     ? (playableLevel < progressLevel ? "重温第 " : "继续第 ") + playableLevel + " 关" : "开始打糖砖";
@@ -193,17 +218,29 @@ namespace ClawbearGames
             SetToggle(0, PlayerPrefs.GetInt("BUBU_VIBRATION_ENABLED", 1) == 1);
             SetToggle(1, ServicesManager.Instance.NotificationManager.NotificationsEnabled);
             if (currentPage == 2) CollectionPanel?.RefreshProgress();
-            for (int i = 0; i < storePrices.Length; i++)
-            {
-                string price = Price(i);
-                bool configured=i<art.productIds.Length && !string.IsNullOrEmpty(art.productIds[i]);
-                storePrices[i].text = !configured ? "未上架" : price != "N/A" ? price : "连接中";
-            }
+            RefreshShopPrices();
         }
 
-        private string Price(int index) => index < art.productIds.Length && !string.IsNullOrEmpty(art.productIds[index])
-            && ServicesManager.Instance.IAPManager.IsInitialized()
-            ? ServicesManager.Instance.IAPManager.GetLocalizedPriceString(art.productIds[index]) : "N/A";
+        private void RefreshShopPrices()
+        {
+            BearShopCatalog catalog = art.shopCatalog;
+            if (catalog == null || catalog.items == null) return;
+            for (int i = 0; i < storePrices.Length && i < catalog.items.Length; i++)
+            {
+                if (storePrices[i] == null) continue;
+                BearShopItem item = catalog.items[i];
+                int owned = BearCoinShop.Quantity(item.id);
+                bool alreadyOwned = !item.consumable && owned > 0;
+                bool cosmetic=item.effect==BearShopEffect.Decoration || item.effect==BearShopEffect.BallSkin;
+                bool equipped=cosmetic && PlayerDataHandler.GetEquipment(item.effect)==item.id;
+                bool locked=PlayerDataHandler.GetCurrentLevel()<item.unlockLevel;
+                storePrices[i].text = locked?"第 "+item.unlockLevel+" 关开放":alreadyOwned ? cosmetic?equipped?"卸下":"装备":"已拥有" : item.coinPrice + " 金币";
+                var button = storePrices[i].GetComponentInParent<Button>(true);
+                button.interactable = !locked && (alreadyOwned?cosmetic:(!item.consumable || owned<99) && PlayerDataHandler.GetTotalCoin()>=item.coinPrice);
+                var inventory = shopProductRows[i].Find("Inventory").GetComponent<Text>();
+                inventory.text = locked?"到达第 "+item.unlockLevel+" 关":owned > 0 ? item.consumable ? "旅行包 ×" + owned : equipped?"使用中 · 永久":"已拥有 · 永久" : item.consumable?"消耗品 · 每关限用 1 次":"永久收藏";
+            }
+        }
 
         public void RefreshDailyRewards(int day,int cooldown)
         {
@@ -275,25 +312,20 @@ namespace ClawbearGames
             PlayerPrefs.Save();
             preferencesDirty=false;
         }
-        private void OnApplicationPause(bool paused) { if(paused)FlushPreferences(); }
+        private void OnApplicationPause(bool paused) { if(paused) { FlushPreferences(); PlayerPrefs.Save(); } }
         private void OnApplicationQuit() => FlushPreferences();
 
         private void Claim(int index)
         {
             DailyRewardManager rewards = ServicesManager.Instance.DailyRewardManager;
             if (rewards.TimeRemainsTillNextReward() != 0 || PlayerDataHandler.GetCurrentRewardIndex() != index) return;
-            if (index == 0 || index == 5) ServicesManager.Instance.CoinManager.AddTotalCoins(index == 0 ? 100 : 300, 0);
-            else
-            {
-                string type = new[] { "", "hearts", "clovers", "flowers", "decorationTickets", "", "candyJars" }[index];
-                int amount = index == 1 ? 3 : index == 3 ? 5 : 1;
-                PlayerPrefs.SetInt(Extras + type, PlayerPrefs.GetInt(Extras + type, 0) + amount);
-            }
+            if (index == 0 || index == 4 || index == 5) ServicesManager.Instance.CoinManager.AddTotalCoins(index == 5 ? 200 : index==4?150:100, 0);
+            else PlayerDataHandler.GrantShopItem(CandyCosmetics.SupportIds[index==1||index==6?0:index==2?1:2],index==6?2:1);
             rewards.HandleClaimedCurrentDailyReward();
             ServicesManager.Instance.SoundManager.PlayCue(GameSoundCue.Reward);
             PlayerPrefs.Save();
             Refresh();
-            Message("领取成功", new[] { "金币 ×100", "爱心 ×3", "四叶草 ×1", "小花 ×5", "装饰券 ×1", "金币 ×300", "糖果罐 ×1" }[index] + "\n奖励已放入你的收藏。");
+            Message("领取成功", new[] { "金币 ×100", "蜂蜜罐 ×1", "糖果锤 ×1", "甜蜜风 ×1", "金币 ×150", "金币 ×200", "蜂蜜罐 ×2" }[index] + "\n金币存入钱包，道具可在关内旅行包使用。");
         }
 
         private void SelectStory(int index) => CollectionPanel?.SelectStory(index);
@@ -308,30 +340,58 @@ namespace ClawbearGames
 
         public void PreviewShopCategory(int index)
         {
-            currentShopTab=Mathf.Clamp(index,0,4);
-            for(int i=0;i<shopTabImages.Length;i++)
+            currentShopTab = Mathf.Clamp(index, 0, 3);
+            for (int i = 0; i < shopTabImages.Length; i++)
             {
-                bool selected=i==currentShopTab;
-                shopTabImages[i].sprite=art.Get(selected?"Shop/TabSelected":"Shop/TabNormal");
-                shopTabImages[i].rectTransform.sizeDelta=new Vector2(172,selected?106:82);
+                bool selected = i == currentShopTab;
+                shopTabImages[i].sprite = art.Get(selected ? "Shop/TabSelected" : "Shop/TabNormal");
+                shopTabImages[i].rectTransform.sizeDelta = new Vector2(200, selected ? 106 : 82);
             }
-            for(int i=0;i<shopProductRows.Length;i++)
+            int visible = 0;
+            float shelfHeight=0;
+            BearShopCatalog catalog = art.shopCatalog;
+            for (int i = 0; i < shopProductRows.Length; i++)
             {
-                shopProductRows[i].gameObject.SetActive(currentShopTab==0 || currentShopTab==i);
-                Vector2 position=new Vector2(43,-(currentShopTab==0?ShopRowPositions[i]:652));
-                var layout=pages[3].GetComponent<BearMenuLayout>();
-                if(layout!=null)layout.SetContentPosition(shopProductRows[i],position);
-                else shopProductRows[i].anchoredPosition=position;
+                if (shopProductRows[i] == null) continue;
+                bool show = currentShopTab == 0 || (int)catalog.items[i].category == currentShopTab - 1;
+                shopProductRows[i].gameObject.SetActive(show);
+                if (show)
+                {
+                    shopProductRows[i].anchoredPosition=new Vector2(0,-shelfHeight);
+                    shelfHeight+=shopProductRows[i].rect.height+18;visible++;
+                }
             }
-            shopCategoryHint.gameObject.SetActive(currentShopTab!=0);
+            shopContent.sizeDelta = new Vector2(825, Mathf.Max(980, shelfHeight-18));
+            shopContent.anchoredPosition = Vector2.zero;
+            shopContent.parent.GetComponent<ScrollRect>().velocity = Vector2.zero;
+            shopEmpty.SetActive(visible == 0);
         }
+
         private void Buy(int index)
         {
-            if (index >= art.productIds.Length || string.IsNullOrEmpty(art.productIds[index]))
-            { Message("商店", "这件商品暂未上架，敬请期待。"); return; }
-            if (ServicesManager.Instance.IAPManager.GetLocalizedPriceString(art.productIds[index]) == "N/A")
-            { Message("商店连接中", "暂时无法连接商店，请稍后再试。"); return; }
-            ServicesManager.Instance.IAPManager.PurchaseProduct(art.productIds[index]);
+            if(art.shopCatalog==null || !art.shopCatalog.IsValid(index))return;
+            var item=art.shopCatalog.items[index];
+            if(BearCoinShop.Quantity(item.id)>0 && PlayerDataHandler.ToggleEquipment(item))
+            {
+                Refresh();
+                Message(PlayerDataHandler.GetEquipment(item.effect)==item.id?"已装备":"已卸下",item.title+"\n"+(item.effect==BearShopEffect.Decoration?"回到小屋即可看到桌面摆件。":"进入关卡即可看到新的小球外观。"));
+                return;
+            }
+            BearPurchaseResult result = BearCoinShop.Buy(art.shopCatalog, index);
+            Refresh();
+            switch (result)
+            {
+                case BearPurchaseResult.Success:
+                    PlayerDataHandler.ToggleEquipment(item);
+                    Refresh();
+                    ServicesManager.Instance.SoundManager.PlayCue(GameSoundCue.Reward);
+                    Message("兑换成功", item.title + "\n"+(item.consumable?"已放入旅行包，关内点击道具即可使用。":"已自动装备，退出游戏后也会保留。")); break;
+                case BearPurchaseResult.AlreadyOwned: Message("已拥有", "这件小物已经在你的收藏里了。"); break;
+                case BearPurchaseResult.NotEnoughCoins: Message("金币不足", "去闯关或领取每日奖励，攒够金币再来吧。"); break;
+                case BearPurchaseResult.InventoryFull: Message("库存已满", "这件道具的库存已达到上限。"); break;
+                case BearPurchaseResult.Locked: Message("继续旅行", "到达第 "+item.unlockLevel+" 关后，这件小物就会开放。"); break;
+                default: Message("暂未上架", "这件小物还在准备中。"); break;
+            }
         }
 
         private void OpenLink(string url, string title, string emptyMessage)

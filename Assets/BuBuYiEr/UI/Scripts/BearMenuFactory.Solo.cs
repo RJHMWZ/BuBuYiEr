@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace ClawbearGames
@@ -17,21 +17,19 @@ namespace ClawbearGames
                 Transform legacy = play.Find("StartGame");
                 if (artwork != null) artwork.gameObject.SetActive(false);
                 if (legacy != null) legacy.gameObject.SetActive(false);
-                BearMenuShape paper = Shape(play, "SoloPlay", 187, 0, 650, 190, 90, Gold, new Color32(255, 204, 62, 255), 8);
-                menu.soloPlayLabel = Label(menu, paper.transform, "Caption", "开始打糖砖", 20, 0, 610, 190, 61);
-                Hotspot(paper.transform, "Start", 0, 0, 650, 190, "play");
+                RectTransform hit=Node(play,"SoloPlay",187,0,650,190);
+                BearMenuShape face=Shape(hit,"Face",0,0,650,190,90,Gold,new Color32(255,204,62,255),6);
+                face.rectTransform.pivot=new Vector2(.5f,.5f);
+                face.rectTransform.anchoredPosition=new Vector2(325,-95);
+                Shadow shadow=face.gameObject.AddComponent<Shadow>();
+                shadow.effectColor=new Color(.32f,.17f,.07f,.12f);shadow.effectDistance=new Vector2(0,-6);
+                Shape(face.transform,"SoftLight",48,22,554,8,4,new Color(1,1,1,.3f),new Color(1,1,1,.3f),0);
+                menu.soloPlayLabel=Label(menu,face.transform,"Caption","开始打糖砖",20,0,610,190,61);
+                Button button=Action(hit,"play");button.targetGraphic=face;
+                BearButtonMotion motion=hit.gameObject.AddComponent<BearButtonMotion>();
+                motion.artwork=face.rectTransform;motion.primary=true;
             }
             else menu.soloPlayLabel = solo.GetComponentInChildren<Text>();
-            Transform level = main.Find("Header/LevelStatus");
-            if (level != null && level.GetComponent<BearMenuAction>() == null)
-            {
-                Transform track = level.Find("ProgressTrack");
-                Transform fill = level.Find("ProgressFill");
-                if (track != null) track.gameObject.SetActive(false);
-                if (fill != null) fill.gameObject.SetActive(false);
-                Label(menu, level, "ChooseLevelHint", "选择关卡 ›", 109, 65, 173, 29, 23);
-                Action((RectTransform)level, "levels");
-            }
         }
     }
 }

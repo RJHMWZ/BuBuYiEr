@@ -19,6 +19,9 @@ namespace ClawbearGames
         public bool IsRoundStarted { get; private set; }
         public bool HasNextLevel => BearSoloProgress.HasNext(CurrentLevel);
         public int NewlyUnlockedStory { get; private set; } = -1;
+        public int NewlyUnlockedBall { get; private set; } = -1;
+        public bool FirstClear { get; private set; }
+        public int EarnedCoins { get; private set; }
         public string FailureReason { get; private set; }
         private bool settled, leaving;
         private float pausedScale = 1;
@@ -38,7 +41,11 @@ namespace ClawbearGames
             Level = testLevelData != null ? testLevelData : Resources.Load<LevelData>("Levels/Level_" + BearSoloProgress.PlayableLevel(PlayerDataHandler.GetTargetLevel()));
             if (Level == null) { Debug.LogError("找不到糖果打砖块关卡数据"); return; }
             CurrentLevel = Level.levelNumber;
-            Board = new CandyBreakoutSimulation(Level);
+            int reachedLevel=CandyProgression.ReachedLevel;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if(GameDebugService.IsPreviewLevel)reachedLevel=Mathf.Max(reachedLevel,CurrentLevel);
+#endif
+            Board = new CandyBreakoutSimulation(Level, reachedLevel);
             var audio=ServicesManager.Instance.SoundManager;
             hitSound = audio.GetCue(GameSoundCue.BrickHit) ?? Resources.Load<AudioClip>("Breakout/Hit");
             breakSound = audio.GetCue(GameSoundCue.BrickBreak) ?? Resources.Load<AudioClip>("Breakout/Pop");
@@ -54,6 +61,14 @@ namespace ClawbearGames
             }
         }
         public bool CanInteract => IsRoundStarted && !IsPaused && !settled && !leaving && Time.timeScale > 0;
+        public bool UseSupport(int kind)
+        {
+            if (!CanInteract || Board == null || !Board.CanUseSupport(kind) || kind < 0 || kind >= CandyCosmetics.SupportIds.Length
+                || !PlayerDataHandler.TryConsumeShopItem(CandyCosmetics.SupportIds[kind])) return false;
+            Board.UseSupport(kind);
+            ServicesManager.Instance.SoundManager.PlayCue(GameSoundCue.Reward);
+            return true;
+        }
         private void Update()
         {
             if (!CanInteract || Board == null) return;
@@ -92,7 +107,11 @@ namespace ClawbearGames
             if (settled || IsRoundStarted) return;
             IsRoundStarted = true;
             ServicesManager.Instance.SoundManager.PlayCue(GameSoundCue.RoundStart);
-            PlayerDataHandler.UpdateWatchedTutorial();
+            if (!PlayerDataHandler.IsWatchedTutorial())
+            {
+                PlayerDataHandler.UpdateWatchedTutorial();
+                PlayerPrefs.Save();
+            }
         }
         public void SetPaused(bool paused)
         {
@@ -131,6 +150,9 @@ namespace ClawbearGames
 #endif
             if (!preview)
             {
+                int previousStars = PlayerDataHandler.GetStar(CurrentLevel);
+                FirstClear = previousStars == 0;
+                EarnedCoins = CandyProgression.RoundReward(Level, CurrentStar, previousStars);
                 PlayerDataHandler.UpdateStar(CurrentLevel, CurrentStar);
                 PlayerDataHandler.UpdateTargetLevel(HasNextLevel ? CurrentLevel + 1 : CurrentLevel);
                 if (CurrentLevel >= previous)
@@ -139,10 +161,13 @@ namespace ClawbearGames
                     for (int i = 0; i < BearCollectionPanel.StoryTitles.Length; i++)
                         if (BearCollectionPanel.StoryUnlockLevel(i) > previous && BearCollectionPanel.StoryUnlockLevel(i) <= CurrentLevel + 1)
                             NewlyUnlockedStory = i;
+                    for (int i = 1; i < 6; i++)
+                        if (!CandyProgression.BallUnlocked(i, previous) && CandyProgression.BallUnlocked(i, CurrentLevel + 1))
+                            NewlyUnlockedBall = i;
                 }
                 // One reward per completed round; the settled guard prevents duplicate callbacks.
-                ServicesManager.Instance.CoinManager.AddTotalCoins(Level.coinReward, 0);
-                ServicesManager.Instance.CoinManager.AddCollectedCoins(Level.coinReward, 0);
+                ServicesManager.Instance.CoinManager.AddTotalCoins(EarnedCoins, 0);
+                ServicesManager.Instance.CoinManager.AddCollectedCoins(EarnedCoins, 0);
                 PlayerPrefs.Save();
             }
             ChangeState(IngameState.Ingame_CompleteLevel);

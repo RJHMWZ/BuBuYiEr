@@ -173,6 +173,7 @@ namespace ClawbearGames
 
         public void OnClickCollectionButton()
         {
+            BearSoloProgress.PendingBall = IngameManager.Instance.NewlyUnlockedBall;
             BearSoloProgress.PendingStory = Mathf.Max(0, IngameManager.Instance.NewlyUnlockedStory);
             LoadScene("Home", .1f);
         }
@@ -186,7 +187,7 @@ namespace ClawbearGames
         public void OnClickShopButton()
         {
             ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Button);
-            ViewManager.Instance.OnShowView(ViewType.IAP_VIEW);
+            ViewManager.Instance.OnShowView(ViewType.SHOP_VIEW);
         }
 
         public void OnClickHomeButton()

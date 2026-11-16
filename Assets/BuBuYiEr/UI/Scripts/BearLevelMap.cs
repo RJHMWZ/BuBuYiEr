@@ -11,7 +11,7 @@ namespace ClawbearGames
         private ScrollRect scroll;
         private RectTransform content;
         private GameObject confirmation;
-        private Text confirmTitle;
+        private Text confirmTitle, confirmInfo, journeyHint;
         private Text coins;
         private Image[] confirmStars;
         private readonly List<Button> buttons = new List<Button>();
@@ -65,12 +65,13 @@ namespace ClawbearGames
             coins = BearGameTheme.Label(art, frame, "CoinCount", "", 756, 29, 218, 76, 43, true);
             BearGameTheme.Picture(art, frame, "PageCloud", "Setting/TitleBg", 230, 134, 564, 112, true);
             BearGameTheme.Label(art, frame, "PageTitle", "糖果旅行", 310, 137, 404, 91, 50);
+            journeyHint=BearGameTheme.Label(art,frame,"JourneyGoal","",70,256,884,38,25);
             BearGameTheme.Picture(art, frame, "PageHeart", "IconLove", 258, 151, 63, 55);
 
             RectTransform viewport = BearMenuFactory.Node(frame, "RouteViewport", 0, 0, 1024, 1100);
             BearMenuFactory.Stretch(viewport);
             viewport.offsetMin = new Vector2(0, 188);
-            viewport.offsetMax = new Vector2(0, -250);
+            viewport.offsetMax = new Vector2(0, -310);
             viewport.gameObject.AddComponent<RectMask2D>();
             Image dragSurface = viewport.gameObject.AddComponent<Image>();
             dragSurface.color = Color.clear;
@@ -132,9 +133,18 @@ namespace ClawbearGames
             Image[] row = new Image[3];
             for (int j = 0; j < 3; j++) row[j] = BearGameTheme.Picture(art, node, "Star" + j, "IconStar", 16 + j * 41, 137, 38, 36);
             stars.Add(row);
-            GameObject marker = BearGameTheme.Picture(art, node, "CurrentHeart", "IconLove", 43, -71, 66, 57).gameObject;
+            GameObject marker = BearGameTheme.Picture(art, node, "CurrentHeart", "IconLove", 106, -19, 46, 40).gameObject;
             currentMarkers.Add(marker);
-            if (index % 5 == 2)
+            string badge="";
+            for(int i=1;i<6;i++)if(CandyProgression.BallUnlockClears[i]==level)badge="通关迎接\n"+CandyBreakoutSimulation.Names[i];
+            for(int i=0;i<CandyProgression.ChapterStarts.Length;i++)if(CandyProgression.ChapterStarts[i]==level)badge="第 "+(i+1)+" 章\n"+CandyProgression.ChapterNames[i];
+            if(!string.IsNullOrEmpty(badge))
+            {
+                float bx=position.x>512?position.x-335:position.x+102;
+                var paper=BearGameTheme.Paper(content,"MilestoneNote"+level,bx,-position.y-36,228,108,new Color32(255,237,194,255),26);
+                BearGameTheme.Label(art,paper.transform,"Label",badge,10,8,208,90,28);
+            }
+            if (index % 5 == 2 && string.IsNullOrEmpty(badge))
             {
                 bool left = position.x > 512;
                 float x = left ? 62 : 762;
@@ -156,7 +166,7 @@ namespace ClawbearGames
             RectTransform card = BearGameTheme.Paper(safe, "LevelInvitation", 128, 452, 768, 697, BearGameTheme.Cream, 64).rectTransform;
             BearGameTheme.Picture(art, card, "TitleRibbon", "Setting/TitleBg", 115, -40, 538, 138, true);
             confirmTitle = BearGameTheme.Label(art, card, "LevelTitle", "", 135, -17, 498, 88, 54);
-            BearGameTheme.Label(art, card, "Invitation", "一起打碎糖砖，收集甜蜜吧", 74, 139, 620, 66, 35);
+            confirmInfo=BearGameTheme.Label(art, card, "Invitation", "", 54, 110, 660, 115, 27);
             confirmStars = new Image[3];
             for (int i = 0; i < 3; i++)
                 confirmStars[i] = BearGameTheme.Picture(art, card, "BestStar" + i, "IconStar", 222 + i * 115, 244, 94, 90);
@@ -172,6 +182,7 @@ namespace ClawbearGames
             confirmation.SetActive(false);
             coins.text = ServicesManager.Instance.CoinManager.TotalCoins.ToString();
             int current = PlayerDataHandler.GetCurrentLevel();
+            journeyHint.text=CandyProgression.NextGoal(current);
             for (int i = 0; i < buttons.Count; i++)
             {
                 buttons[i].interactable = i + 1 <= current;
@@ -189,9 +200,14 @@ namespace ClawbearGames
 
         public void ShowConfirmation(int level)
         {
-            if (leaving) return;
+            if (leaving || level<1 || level>PlayerDataHandler.GetCurrentLevel()) return;
             confirmTitle.text = "第 " + level + " 关";
+            var data=Resources.Load<LevelData>("Levels/Level_"+level);
+            if(data==null)return;
             int earned = PlayerDataHandler.GetStar(level);
+            confirmInfo.text=CandyProgression.ChapterNames[CandyProgression.Chapter(level)]+(data.boss?" · 大糖砖":"")+"\n"+
+                (earned==0?"首次通关 "+data.coinReward:"重玩通关 "+Mathf.Max(8,data.coinReward/4))+" 金币 · 每颗新星额外 10 金币\n"+
+                "三星 ≤ "+Mathf.RoundToInt(data.threeStarTime)+" 秒 · 二星 ≤ "+Mathf.RoundToInt(data.twoStarTime)+" 秒";
             for (int i = 0; i < 3; i++) confirmStars[i].color = i < earned ? Color.white : new Color(.68f, .51f, .34f, .30f);
             confirmation.SetActive(true);
         }

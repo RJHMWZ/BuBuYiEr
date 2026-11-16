@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -8,26 +9,10 @@ using UnityEngine.SceneManagement;
 
 namespace UIAnimationPresets.Samples.Editor
 {
-    [InitializeOnLoad]
     public static class UIAnimationDemoBuilder
     {
         private const string Root = "Assets/UIAnimationPresets";
         private const string ScenePath = Root + "/Samples/Scenes/UIAnimationDemo.unity";
-        static UIAnimationDemoBuilder()
-        {
-            EditorApplication.delayCall += Install;
-            EditorApplication.playModeStateChanged += state => { if (state == PlayModeStateChange.EnteredEditMode) EditorApplication.delayCall += Install; };
-        }
-        private static void Install()
-        {
-            if (EditorApplication.isPlayingOrWillChangePlaymode) return;
-            if (EditorApplication.isCompiling || EditorApplication.isUpdating) { EditorApplication.delayCall += Install; return; }
-            AssetImporter importer = AssetImporter.GetAtPath(ScenePath);
-            if (importer != null && importer.userData == "UIAnimationDemo_v1") return;
-            Scene open = SceneManager.GetSceneByPath(ScenePath);
-            if (open.IsValid() && open.isLoaded && open.isDirty) return;
-            Build();
-        }
 
         [MenuItem("Tools/UI Animation/创建或重建示例场景")]
         public static void Build()
@@ -50,7 +35,19 @@ namespace UIAnimationPresets.Samples.Editor
             TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(fontPath);
             if (font == null)
             {
-                font = TMP_FontAsset.CreateFontAsset(Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
+                if (Shader.Find("TextMeshPro/Mobile/Distance Field") == null)
+                {
+                    Debug.LogWarning("请先导入 TMP Essential Resources，再手动创建动画示例。游戏菜单不依赖此示例。");
+                    return;
+                }
+                // Built-in runtime fonts may omit font data and return null from FontEngine.
+                Font source = AssetDatabase.FindAssets("t:Font", new[] { "Assets" })
+                    .Select(AssetDatabase.GUIDToAssetPath)
+                    .Where(path => AssetImporter.GetAtPath(path) is TrueTypeFontImporter importer && importer.includeFontData)
+                    .Select(AssetDatabase.LoadAssetAtPath<Font>).FirstOrDefault(value => value != null);
+                if (source == null) { Debug.LogWarning("示例场景需要一份勾选 Include Font Data 的字体资源。"); return; }
+                font = TMP_FontAsset.CreateFontAsset(source);
+                if (font == null) { Debug.LogWarning("无法创建示例字体，请检查源字体的 Font Data 配置。"); return; }
                 font.name = "UIAnimationDemoFont";
                 AssetDatabase.CreateAsset(font, fontPath);
                 if (font.material != null) AssetDatabase.AddObjectToAsset(font.material, font);

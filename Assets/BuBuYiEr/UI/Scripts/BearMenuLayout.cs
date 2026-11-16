@@ -8,6 +8,8 @@ namespace ClawbearGames
     {
         public Vector2 designSize = new Vector2(941, 1672);
         public bool flexibleMain;
+        [SerializeField, HideInInspector] private RectTransform[] designChildren;
+        [SerializeField, HideInInspector] private Vector2[] designPositions, designSizes;
         private struct Placement
         {
             public Vector2 Position, Size;
@@ -19,6 +21,27 @@ namespace ClawbearGames
         private int lastChildCount = -1;
         private bool lastFlexible, layoutDirty = true;
         private readonly List<RectTransform> removedChildren = new List<RectTransform>();
+        // Keep design coordinates in the prefab. Otherwise an editor baked on a tall
+        // Game view becomes the baseline again after reload, applying the height offset twice.
+        public void CaptureDesign()
+        {
+            designChildren=new RectTransform[transform.childCount];
+            designPositions=new Vector2[designChildren.Length];designSizes=new Vector2[designChildren.Length];
+            int i=0;
+            foreach(RectTransform child in transform)
+            {
+                designChildren[i]=child;
+                Placement basis;
+                if(!original.TryGetValue(child,out basis))basis=new Placement {Position=child.anchoredPosition,Size=child.sizeDelta};
+                designPositions[i]=basis.Position;designSizes[i]=basis.Size;i++;
+            }
+        }
+        private void RestoreDesign()
+        {
+            if(original.Count>0 || designChildren==null || designPositions==null || designSizes==null)return;
+            for(int i=0;i<designChildren.Length && i<designPositions.Length && i<designSizes.Length;i++)
+                if(designChildren[i]!=null)original[designChildren[i]]=new Placement {Position=designPositions[i],Size=designSizes[i]};
+        }
         public void SetContentPosition(RectTransform child, Vector2 position)
         {
             if (child == null) return;
@@ -40,6 +63,7 @@ namespace ClawbearGames
 
         public void Refresh(Rect safe, Vector2 viewport)
         {
+            RestoreDesign();
             RectTransform rect = transform as RectTransform;
             RectTransform parent = transform.parent as RectTransform;
             if (rect == null || parent == null || parent.rect.width <= 0 || parent.rect.height <= 0) return;
@@ -83,11 +107,11 @@ namespace ClawbearGames
             {
                 RectTransform room = transform.Find("BearRoom") as RectTransform;
                 if (room == null) return;
-                float available = frame.rect.height - 540 - 388;
+                float available = frame.rect.height - 540 - 450;
                 float roomScale = Mathf.Min(1, (available - 24) / 640);
                 roomScale = Mathf.Max(.6f, roomScale);
                 room.anchorMin = room.anchorMax = room.pivot = new Vector2(.5f,.5f);
-                Vector2 centre = new Vector2(0, frame.rect.height * .5f - (388 + available * .5f));
+                Vector2 centre = new Vector2(0, frame.rect.height * .5f - (450 + available * .5f));
                 if (room.anchoredPosition != centre) room.anchoredPosition = centre;
                 if (room.localScale != Vector3.one * roomScale) room.localScale = Vector3.one * roomScale;
                 return;
@@ -117,11 +141,12 @@ namespace ClawbearGames
                     if (child.name.EndsWith("Shelf"))
                         foreach (RectTransform item in child)
                             if (item.GetComponent<UnityEngine.UI.ScrollRect>() != null)
-                                item.sizeDelta = new Vector2(item.sizeDelta.x, 653 + extra);
+                                item.sizeDelta = new Vector2(item.sizeDelta.x, (child.name=="JourneyShelf"?1000:653) + extra);
                 }
                 else
                 {
                     p.y -= extra * Mathf.InverseLerp(580, 1514, y);
+                    if (name == "Shop" && child.name == "ShopShelf") size.y += extra;
                     bool panel = child.name.EndsWith("Panel");
                     if (panel) size.y += extra * (Mathf.InverseLerp(580, 1514, y + basis.Size.y) - Mathf.InverseLerp(580, 1514, y));
                     if (name == "DailyReward" && child.name.StartsWith("Day") && int.TryParse(child.name.Substring(3), out int day))

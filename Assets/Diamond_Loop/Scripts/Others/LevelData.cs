@@ -9,7 +9,7 @@ namespace ClawbearGames
         [Range(5, 10)] public int columns = 9;
         [Range(4, 9)] public int rows = 6;
         [Min(1)] public int brickHealth = 5;
-        [Range(0, 3)] public int pattern;
+        [Range(0, 7)] public int pattern;
         public bool boss;
         [Min(0)] public int startingHoney = 90;
         [Min(1)] public int coinReward = 30;

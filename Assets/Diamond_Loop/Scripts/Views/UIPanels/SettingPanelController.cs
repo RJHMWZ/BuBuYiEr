@@ -64,10 +64,6 @@ namespace ClawbearGames
             ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Button);
             Application.OpenURL(ServicesManager.Instance.ShareManager.AppUrl);
         }
-        public void OnClickRemoveAdsButton()
-        {
-            ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Button);
-        }
 
         public void OnClickCloseButton()
         {

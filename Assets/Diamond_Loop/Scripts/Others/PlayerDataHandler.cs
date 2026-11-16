@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -28,6 +28,8 @@ namespace ClawbearGames
             cachedData = string.IsNullOrEmpty(json) ? new PlayerData() : JsonUtility.FromJson<PlayerData>(json) ?? new PlayerData();
             cachedData.ListStarData ??= new List<StarData>();
             cachedData.ListPurchasedProduct ??= new List<string>();
+            cachedData.ShopInventory ??= new List<BearInventoryEntry>();
+            cachedData.ClaimedJourneyRewards ??= new List<int>();
             cachedJson = json;
         }
 
@@ -59,26 +61,85 @@ namespace ClawbearGames
             else cachedJson = json;
         }
 
-        /// <summary>
-        /// Enable remove ads index data (user wont see ads). 
-        /// </summary>
-        public static void EnableRemoveAds()
+        public static int GetShopQuantity(string id)
         {
-            PlayerData playerData = ReadData();
-            playerData.RemoveAds = 1;
-            SaveData(playerData);
+            if (string.IsNullOrEmpty(id)) return 0;
+            var entry = ReadData().ShopInventory.Find(x => x != null && x.id == id);
+            return entry == null ? 0 : Math.Max(0, entry.quantity);
         }
 
-
-
-        /// <summary>
-        /// Check if remove ads index is set.
-        /// </summary>
-        /// <returns></returns>
-        public static bool IsRemovedAds()
+        public static BearPurchaseResult TryPurchaseShopItem(BearShopItem item)
         {
-            PlayerData playerData = ReadData();
-            return playerData.RemoveAds == 1;
+            if (item == null || !item.available || item.coinPrice <= 0 || string.IsNullOrWhiteSpace(item.id))
+                return BearPurchaseResult.Unavailable;
+            PlayerData data = ReadData();
+            if (data.CurrentLevel < item.unlockLevel) return BearPurchaseResult.Locked;
+            BearInventoryEntry entry = data.ShopInventory.Find(x => x != null && x.id == item.id);
+            int quantity = entry == null ? 0 : Math.Max(0, entry.quantity);
+            if (!item.consumable && quantity > 0) return BearPurchaseResult.AlreadyOwned;
+            if (quantity >= (item.consumable ? 99 : int.MaxValue)) return BearPurchaseResult.InventoryFull;
+            if (data.TotalCoins < item.coinPrice) return BearPurchaseResult.NotEnoughCoins;
+            if (entry == null)
+            {
+                entry = new BearInventoryEntry { id = item.id };
+                data.ShopInventory.Add(entry);
+            }
+            // Wallet and inventory are a single saved transaction, including after mobile suspension.
+            data.TotalCoins -= item.coinPrice;
+            entry.quantity = quantity + 1;
+            SaveData(data);
+            PlayerPrefs.Save();
+            return BearPurchaseResult.Success;
+        }
+
+        public static int GetTotalStars()
+        {
+            int total = 0;
+            // Only one best record per real level contributes to achievements.
+            for (int level = 1; level <= 101; level++) total += Mathf.Clamp(GetStar(level), 0, 3);
+            return total;
+        }
+        public static bool IsJourneyClaimed(int index) => ReadData().ClaimedJourneyRewards.Contains(index);
+        public static bool TryClaimJourney(int index)
+        {
+            if (index < 0 || index >= CandyProgression.JourneyCount || IsJourneyClaimed(index)
+                || CandyProgression.JourneyProgress(index) < CandyProgression.JourneyGoals[index]) return false;
+            var data = ReadData();
+            data.ClaimedJourneyRewards.Add(index);
+            data.TotalCoins = (int)Math.Min(int.MaxValue, (long)data.TotalCoins + CandyProgression.JourneyCoins[index]);
+            SaveData(data); PlayerPrefs.Save();
+            return true;
+        }
+        public static string GetEquipment(BearShopEffect effect) => effect == BearShopEffect.Decoration
+            ? ReadData().EquippedDecoration ?? "" : ReadData().EquippedBallSkin ?? "";
+        public static bool ToggleEquipment(BearShopItem item)
+        {
+            if (item == null || item.consumable || GetShopQuantity(item.id) <= 0
+                || (item.effect != BearShopEffect.Decoration && item.effect != BearShopEffect.BallSkin)) return false;
+            var data = ReadData();
+            string chosen = GetEquipment(item.effect) == item.id ? "" : item.id;
+            if (item.effect == BearShopEffect.Decoration) data.EquippedDecoration = chosen;
+            else data.EquippedBallSkin = chosen;
+            SaveData(data); PlayerPrefs.Save();
+            return true;
+        }
+        public static bool TryConsumeShopItem(string id)
+        {
+            var data = ReadData();
+            var entry = data.ShopInventory.Find(x => x != null && x.id == id);
+            if (entry == null || entry.quantity <= 0) return false;
+            entry.quantity--;
+            SaveData(data); PlayerPrefs.Save();
+            return true;
+        }
+        public static void GrantShopItem(string id, int quantity)
+        {
+            if (string.IsNullOrEmpty(id) || quantity <= 0) return;
+            var data = ReadData();
+            var entry = data.ShopInventory.Find(x => x != null && x.id == id);
+            if (entry == null) { entry = new BearInventoryEntry { id = id }; data.ShopInventory.Add(entry); }
+            entry.quantity = (int)Math.Min(99, (long)Math.Max(0, entry.quantity) + quantity);
+            SaveData(data); PlayerPrefs.Save();
         }
 
 
@@ -331,33 +392,6 @@ namespace ClawbearGames
                 playerData.ListStarData.Add(new StarData(level, star));
             }
             SaveData(playerData);
-        }
-
-
-
-        /// <summary>
-        /// Update the iap product if that already purchased (non-consumable).
-        /// </summary>
-        /// <param name="productId"></param>
-        public static void UpdatePurchasedProduct(string productId)
-        {
-            PlayerData playerData = ReadData();
-            if (!playerData.ListPurchasedProduct.Contains(productId))
-            {
-                playerData.ListPurchasedProduct.Add(productId);
-                SaveData(playerData);
-            }
-        }
-
-
-        /// <summary>
-        /// Update the iap product if that already purchased (non-consumable).
-        /// </summary>
-        /// <param name="productId"></param>
-        public static bool IsPurchasedProduct(string productId)
-        {
-            PlayerData playerData = ReadData();
-            return playerData.ListPurchasedProduct.Contains(productId);
         }
 
 

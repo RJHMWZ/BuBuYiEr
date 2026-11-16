@@ -163,9 +163,12 @@ namespace ClawbearGames
         {
             paintOpacity=1;
             Rect play = paintBounds;
-            Rounded(vh, new Rect(play.x - 3, play.y - 3, play.width + 6, play.height + 6), 8,
-                new Color32(180,139,100,255), new Color32(180,139,100,255));
-            Rounded(vh, play, 6, new Color32(255,251,241,255), new Color32(255,243,220,255));
+            Rounded(vh, play, 10, new Color(1,.99f,.95f,.12f), new Color(1,.97f,.87f,.12f));
+            // A quiet paw stamp belongs to the tray, well below the numbered candy.
+            Vector2 stamp=ToLocalPoint(new Vector2(450,650));
+            Color watermark=new Color(.63f,.40f,.23f,.055f);
+            Dot(vh,stamp,26*paintScale,watermark);
+            for(int i=0;i<4;i++)Dot(vh,stamp+new Vector2((i-1.5f)*21,37-Mathf.Abs(i-1.5f)*10)*paintScale,10*paintScale,watermark);
             foreach(var brick in Board.Bricks)
                 if(brick.Alive)DrawBrick(vh,brick,1,1);
             foreach(var item in departing)
@@ -174,15 +177,41 @@ namespace ClawbearGames
                 DrawBrick(vh,item.Brick,Mathf.Lerp(1,.76f,t),1-t*t);
             }
             paintOpacity=1;
+            string skin=PlayerDataHandler.GetEquipment(BearShopEffect.BallSkin);
             foreach (var ball in Board.Balls)
             {
-                Color c = CandyColors[ball.Kind];
+                Color c = CandyCosmetics.SkinPreview(skin,ball.Kind);
                 for (int i = ball.TrailCount - 1; i >= 0; i--)
-                    Circle(vh, ball.Trail[i], 8 - i * .6f, new Color(c.r,c.g,c.b,.22f * (1 - i / 8f)));
+                {
+                    float fade=1-i/8f;
+                    Vector2 p=ToLocalPoint(ball.Trail[i]);
+                    if(skin=="skin_starry")
+                    {
+                        if(i%2==0)CandyBallArt.Star(vh,p,(4.5f-i*.35f)*paintScale,new Color(.63f,.47f,.95f,.75f*fade),i*19);
+                    }
+                    else if(skin=="skin_sunset" && i>0)
+                    {
+                        Vector2 next=ToLocalPoint(ball.Trail[i-1]);
+                        CandyBallArt.Line(vh,p,next,(10-i*.8f)*paintScale,new Color(1,.46f,.16f,.45f*fade));
+                        CandyBallArt.Line(vh,p,next,(4-i*.28f)*paintScale,new Color(1,.93f,.56f,.72f*fade));
+                    }
+                    else if(skin=="skin_jelly")
+                    {
+                        if(i%2==0)
+                        {
+                            Dot(vh,p,(6-i*.4f)*paintScale,new Color(.16f,.68f,.66f,.45f*fade));
+                            Dot(vh,p,(4-i*.3f)*paintScale,new Color(.73f,1,.92f,.65f*fade));
+                        }
+                    }
+                    else if(skin=="skin_milk")
+                    {
+                        Vector2 crumb=p+new Vector2(i%2==0?2:-2,i%3-1)*paintScale;
+                        Dot(vh,crumb,(3.4f-i*.22f)*paintScale,new Color(.72f,.41f,.16f,.60f*fade));
+                    }
+                    else Circle(vh,ball.Trail[i],8-i*.6f,new Color(c.r,c.g,c.b,.22f*fade));
+                }
                 if (ball.Impact > 0) Circle(vh, ball.Position, 16, new Color(1,.75f,.25f,ball.Impact*.22f));
-                Circle(vh, ball.Position, CandyBreakoutSimulation.Radius, BearGameTheme.Brown);
-                Circle(vh, ball.Position, 8.5f, c);
-                Circle(vh, ball.Position + new Vector2(-3,-3), 2.7f, new Color(1,1,1,.9f));
+                CandyBallArt.Draw(vh,ToLocalPoint(ball.Position),CandyBreakoutSimulation.Radius*paintScale,ball.Kind,skin);
             }
             foreach (var spark in Board.Sparks)
             {
@@ -195,7 +224,7 @@ namespace ClawbearGames
             paintOpacity=opacity;
             Rect r=VisualRect(brick.Bounds);
             if(scale!=1)r=new Rect(r.center-r.size*scale*.5f,r.size*scale);
-            float radius=brick.Boss?18:8;
+            float radius=brick.Boss?21:12;
             Rounded(vh,new Rect(r.x-1,r.y-5,r.width+2,r.height+1),radius+1,
                 new Color32(104,65,32,12),new Color32(104,65,32,12));
             Rounded(vh,new Rect(r.x,r.y-3,r.width,r.height),radius,
@@ -205,7 +234,55 @@ namespace ClawbearGames
             if(brick.Alive&&brick.Flash>0)c=Color.Lerp(c,Color.white,.6f);
             Rect inner=new Rect(r.x+2.8f,r.y+2.8f,r.width-5.6f,r.height-5.6f);
             Rounded(vh,inner,radius-2.8f,Color.Lerp(c,Color.white,.18f),c);
-            Rounded(vh,new Rect(inner.x+5,inner.yMax-6,inner.width-10,3),1.5f,
+            // Flavor details live at the edges. The number always has a quiet, opaque centre.
+            float side=Mathf.Min(22*scale,inner.width*.22f);
+            Color cream=new Color(1,.97f,.81f,.85f),chocolate=new Color(.40f,.23f,.14f,.27f);
+            if(brick.Color==0)
+            {
+                for(int i=0;i<3;i++)
+                {
+                    float x=inner.x+5*scale+i*6*scale;
+                    Dot(vh,new Vector2(x,inner.center.y+2*scale),4*scale,cream);
+                    Dot(vh,new Vector2(inner.xMax-5*scale-i*6*scale,inner.center.y+2*scale),4*scale,cream);
+                }
+            }
+            else if(brick.Color==1)
+            {
+                for(int i=0;i<3;i++)
+                {
+                    Vector2 p=new Vector2(inner.x+7*scale+(i%2)*7*scale,inner.y+7*scale+(i/2)*10*scale);
+                    Dot(vh,p,1.8f*scale,cream);Dot(vh,new Vector2(inner.xMax-(p.x-inner.x),p.y),1.8f*scale,cream);
+                }
+            }
+            else if(brick.Color==2 || brick.Color==3)
+            {
+                for(int i=0;i<3;i++)
+                {
+                    float y=inner.y+6*scale+i*8*scale;
+                    CandyBallArt.Line(vh,new Vector2(inner.x+3*scale,y),new Vector2(inner.x+side,y+5*scale),2*scale,cream);
+                    CandyBallArt.Line(vh,new Vector2(inner.xMax-side,y),new Vector2(inner.xMax-3*scale,y+5*scale),2*scale,cream);
+                }
+            }
+            else if(brick.Color==4)
+            {
+                Rounded(vh,new Rect(inner.x+5*scale,inner.y+5*scale,side-3*scale,inner.height-10*scale),3*scale,chocolate,chocolate);
+                Rounded(vh,new Rect(inner.xMax-side-2*scale,inner.y+5*scale,side-3*scale,inner.height-10*scale),3*scale,chocolate,chocolate);
+                CandyBallArt.Line(vh,new Vector2(inner.x+5*scale,inner.center.y),new Vector2(inner.xMax-5*scale,inner.center.y),1.5f*scale,chocolate);
+            }
+            else
+            {
+                for(int i=0;i<3;i++)
+                {
+                    Color stripe=CandyColors[i*2];
+                    Rounded(vh,new Rect(inner.x+5*scale+i*5*scale,inner.y+5*scale,4*scale,inner.height-10*scale),2*scale,stripe,stripe);
+                    Rounded(vh,new Rect(inner.xMax-9*scale-i*5*scale,inner.y+5*scale,4*scale,inner.height-10*scale),2*scale,stripe,stripe);
+                }
+            }
+            float plateWidth=Mathf.Max(inner.width*.36f,28*scale);
+            if(brick.Boss)plateWidth=inner.width*.48f;
+            Rect plate=new Rect(inner.center.x-plateWidth*.5f,inner.y+2*scale,plateWidth,inner.height-4*scale);
+            Rounded(vh,plate,Mathf.Min(8*scale,plate.height*.3f),new Color(1,.98f,.9f,.74f),new Color(1,.96f,.84f,.74f));
+            Rounded(vh,new Rect(inner.x+8*scale,inner.yMax-6*scale,inner.width-16*scale,3*scale),1.5f*scale,
                 new Color(1,1,1,.50f),new Color(1,1,1,.32f));
             Rounded(vh,new Rect(inner.x+4,inner.y+1.5f,inner.width-8,2.5f),1.25f,
                 new Color(.32f,.17f,.07f,.12f),new Color(.32f,.17f,.07f,.18f));
@@ -214,9 +291,6 @@ namespace ClawbearGames
                 Dot(vh,r.center+new Vector2(-56,12)*scale,5*scale,BearGameTheme.Brown);
                 Dot(vh,r.center+new Vector2(56,12)*scale,5*scale,BearGameTheme.Brown);
             }
-            if(brick.Alive&&brick.Health<brick.MaxHealth)
-                Rounded(vh,new Rect(r.x+8,r.y+5,(r.width-16)*brick.Health/brick.MaxHealth,3),1.5f,
-                    new Color(.32f,.17f,.07f,.55f),new Color(.32f,.17f,.07f,.55f));
             paintOpacity=1;
         }
         private void Rounded(VertexHelper vh, Rect r, float radius, Color top, Color bottom)

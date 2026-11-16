@@ -28,7 +28,7 @@ namespace ClawbearGames.EditorTools
             => ApplyInternal(false);
 
         public static void RebuildSceneMenu()
-            => ApplyInternal(false);
+            => ApplyInternal(true);
 
         private static void ApplyInternal(bool replaceMenu)
         {
@@ -47,7 +47,7 @@ namespace ClawbearGames.EditorTools
 
             CleanMenuPrefab();
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BearMenuBuilder.PrefabPath);
-            if (prefab == null) throw new InvalidOperationException("请先执行“应用参考图主菜单”生成预制体。");
+            if (prefab == null) throw new InvalidOperationException("请先执行“重建统一菜单与金币商店”生成预制体。");
             BearHomeMenuController menu = FindInScene<BearHomeMenuController>(scene).SingleOrDefault();
             if(replaceMenu && menu!=null)
             {
@@ -148,6 +148,7 @@ namespace ClawbearGames.EditorTools
             Undo.RegisterFullObjectHierarchyUndo(menu.gameObject, "预览" + PageNames[index]);
             menu.themeRoot.gameObject.SetActive(true);
             for (int i = 0; i < menu.pages.Length; i++) menu.pages[i].SetActive(i == index);
+            if (menu.header != null) menu.header.ShowPage(index);
             menu.modal.SetActive(false);
             menu.RefreshDailyRewards(1,0);
             if (menu.CollectionPanel != null) menu.CollectionPanel.SelectTab(1);

@@ -37,6 +37,9 @@ namespace ClawbearGames.EditorTools
                     Application.dataPath.Replace("\\", "/").EndsWith("/Temp/BreakoutValidation/Assets"),
                     "validation requires the isolated Temp/BreakoutValidation project and product name");
                 PlayerPrefs.DeleteKey("CBGAMES_PLAYER_DATA");
+                BearMenuBuilder.Build();
+                FreeMenuValidation.CheckPurchases();
+                CandyProgressionValidation.RunChecks();
                 CheckDataAndAllocations();
                 CheckThemeAudio();
                 CheckCollisions();
@@ -286,16 +289,14 @@ namespace ClawbearGames.EditorTools
             {
                 menu.OpenPage(page);
                 Render(menu.themeRoot.gameObject,"mobile-menu-"+page+"-1080x2400.png",1080,2400);
-                if(page>0)
-                {
-                    Transform menuFrame=menu.pages[page].transform;
-                    var arrow=(menuFrame.Find("BackArrow") ?? menuFrame.Find("Header/BackArrow")) as RectTransform;
-                    var paper=(menuFrame.Find("BackPaper") ?? menuFrame.Find("Header/BackPanel")) as RectTransform;
-                    var corners=new Vector3[4];arrow.GetWorldCorners(corners);
-                    foreach(Vector3 corner in corners)
-                        CandyBreakoutValidation.Check(paper.rect.Contains(paper.InverseTransformPoint(corner)),"back arrow stays inside return button, page "+page);
-                }
+                var arrow = menu.header.backStatus.transform.Find("Arrow") as RectTransform;
+                var paper = menu.header.backStatus.transform.Find("Panel") as RectTransform;
+                var corners = new Vector3[4]; arrow.GetWorldCorners(corners);
+                foreach (Vector3 corner in corners)
+                    CandyBreakoutValidation.Check(paper.rect.Contains(paper.InverseTransformPoint(corner)), "shared back arrow remains in panel");
             }
+            FreeMenuValidation.CheckRuntime(menu);
+            CandyProgressionValidation.CheckRuntime(menu);
             menu.OpenPage(0);
             PlayerDataHandler.UpdateTargetLevel(1);
             // Enter through Loading, then check the retained level-selection UI.
@@ -348,6 +349,14 @@ namespace ClawbearGames.EditorTools
             var buy = views.IngameViewController.GetComponentsInChildren<Button>(true).First(x => x.name == "Buy");
             buy.onClick.Invoke();
             CandyBreakoutValidation.Check(game.Board.Balls.Count == 2 && game.Board.Honey < honey, "actual shop button spends honey");
+            PlayerDataHandler.GrantShopItem(CandyCosmetics.SupportIds[0],2);
+            game.SetPaused(true);
+            CandyBreakoutValidation.Check(!game.UseSupport(0) && PlayerDataHandler.GetShopQuantity(CandyCosmetics.SupportIds[0])==2,"paused support cannot consume stock");
+            game.SetPaused(false);
+            int beforeSupport=game.Board.Honey;
+            var supportButton=views.IngameViewController.transform.Find("CandyBreakoutUI/CandyRoom/TravelBag/Support0").GetComponent<Button>();
+            supportButton.onClick.Invoke();supportButton.onClick.Invoke();
+            CandyBreakoutValidation.Check(game.Board.Honey==beforeSupport+120 && PlayerDataHandler.GetShopQuantity(CandyCosmetics.SupportIds[0])==1 && game.Board.UsedSupport[0],"real support button grants once and consumes one persisted item");
             yield return null;
             Render(views.IngameViewController.gameObject, "polished-1080x1920.png", 1080, 1920);
             Render(views.IngameViewController.gameObject, "polished-1080x2400.png", 1080, 2400);
@@ -357,8 +366,8 @@ namespace ClawbearGames.EditorTools
             var shopScroll=views.IngameViewController.transform.Find("CandyBreakoutUI/CandyRoom/BallShop").GetComponent<ScrollRect>();
             shopScroll.horizontalNormalizedPosition=1;
             Canvas.ForceUpdateCanvases();
-            Render(views.IngameViewController.gameObject,"mobile-shop-last-three.png",1080,1920);
-            CandyBreakoutValidation.Check(shopScroll.content.anchoredPosition.x < -900,"swipe reveals last three ball types");
+            Render(views.IngameViewController.gameObject,"mobile-shop-last-types.png",1080,1920);
+            CandyBreakoutValidation.Check(shopScroll.content.anchoredPosition.x < -900,"swipe reveals the remaining ball types");
             shopScroll.horizontalNormalizedPosition=0;
             int coins = ServicesManager.Instance.CoinManager.TotalCoins;
             int safety = 0;
@@ -373,17 +382,30 @@ namespace ClawbearGames.EditorTools
             yield return new WaitForSecondsRealtime(1);
             CandyBreakoutValidation.Check(game.IngameState == IngameState.Ingame_CompleteLevel && views.ActiveViewType == ViewType.ENDGAME_VIEW, "real win reaches outcome");
             CandyBreakoutValidation.Check(graphic.Board==null,"hidden persistent gameplay view releases the previous simulation");
-            CandyBreakoutValidation.Check(ServicesManager.Instance.CoinManager.TotalCoins == coins + game.Level.coinReward, "coin reward committed once");
+            CandyBreakoutValidation.Check(ServicesManager.Instance.CoinManager.TotalCoins == coins + game.EarnedCoins && game.EarnedCoins==game.Level.coinReward+game.CurrentStar*10, "first clear and new-star coins committed once");
             game.CompletedLevel();
-            CandyBreakoutValidation.Check(ServicesManager.Instance.CoinManager.TotalCoins == coins + game.Level.coinReward, "duplicate settlement blocked");
+            CandyBreakoutValidation.Check(ServicesManager.Instance.CoinManager.TotalCoins == coins + game.EarnedCoins, "duplicate settlement blocked");
             CandyBreakoutValidation.Check(PlayerDataHandler.GetCurrentLevel() == 2, "progress unlock");
             Render(views.EndGameViewController.gameObject, "polished-result.png", 1080, 1920);
-            views.EndGameViewController.OnClickPlayButton();
+            var outcomeButtons = views.EndGameViewController.GetComponentsInChildren<Button>();
+            outcomeButtons.Single(x=>x.name=="Primary").onClick.Invoke();
+            outcomeButtons.Single(x=>x.name=="Left").onClick.Invoke();
+            CandyBreakoutValidation.Check(PlayerDataHandler.GetTargetLevel()==2, "cross-tapping result choices cannot replace next level with replay");
+            CandyBreakoutValidation.Check(outcomeButtons.All(x=>!x.interactable), "result navigation locks after the first choice");
             yield return new WaitForSecondsRealtime(2);
-            CandyBreakoutValidation.Check(IngameManager.Instance.CurrentLevel == 2 && !IngameManager.Instance.IsRoundStarted, "next level fresh round");
-            views.IngameViewController.GetComponent<BearPausePanel>().Restart();
+            CandyBreakoutValidation.Check(IngameManager.Instance.CurrentLevel == 2 && IngameManager.Instance.IsRoundStarted, "next level starts without repeating tutorial");
+            var retrySource = IngameManager.Instance.Board;
+            var pausePanel = views.IngameViewController.GetComponent<BearPausePanel>();
+            int keptHoney = retrySource.Honey;
+            pausePanel.Restart();
+            CandyBreakoutValidation.Check(IngameManager.Instance.IsPaused && IngameManager.Instance.Board==retrySource, "restart first asks before losing progress");
+            pausePanel.Toggle();
+            pausePanel.Resume();
+            CandyBreakoutValidation.Check(!IngameManager.Instance.IsPaused && retrySource.Honey==keptHoney, "cancel confirmation keeps the round");
+            pausePanel.Restart();
+            pausePanel.Resume();
             yield return new WaitForSecondsRealtime(2);
-            CandyBreakoutValidation.Check(IngameManager.Instance.CurrentLevel == 2 && IngameManager.Instance.Board.Destroyed == 0, "retry clean board");
+            CandyBreakoutValidation.Check(IngameManager.Instance.CurrentLevel == 2 && IngameManager.Instance.Board != retrySource && IngameManager.Instance.Board.ClickLevel == 0 && IngameManager.Instance.Board.Balls.Count==1, "confirmed retry creates a fresh round");
             var gameplay=views.IngameViewController.GetComponent<CandyBreakoutView>();
             var labelRoot=views.IngameViewController.transform.Find("CandyBreakoutUI/CandyRoom/CandyBoard/Arena/BrickHealthLabels");
             int pooledLabels=labelRoot.childCount;
@@ -406,16 +428,32 @@ namespace ClawbearGames.EditorTools
             }
             yield return new WaitForSecondsRealtime(.4f);
             Render(views.IngameViewController.gameObject,"polished-progress.png",1080,1920);
+            var progressBoard = game.Board;
+            var progressPause = views.IngameViewController.GetComponent<BearPausePanel>();
+            progressPause.ReturnHome();
+            Render(views.IngameViewController.gameObject,"polished-confirm.png",1080,1920);
+            progressPause.Toggle();
+            progressPause.Resume();
+            CandyBreakoutValidation.Check(game.Board==progressBoard && !game.IsPaused, "cancel return-home confirmation preserves progress");
             var upgradeFace = views.IngameViewController.GetComponentsInChildren<CandyBreakoutButton>().First(x=>x.name=="Upgrade");
             upgradeFace.SetState(false,new Color32(190,220,189,255),"已满级","MAX",true);
             Render(views.IngameViewController.gameObject,"polished-states.png",1080,1920);
-            GameDebugService.JumpToLevel(5);
+            GameDebugService.JumpToLevel(10);
             yield return new WaitForSecondsRealtime(2);
             views.IngameViewController.GetComponentsInChildren<Button>(true).Single(x=>x.name=="Begin").onClick.Invoke();
             yield return new WaitForSecondsRealtime(.2f);
             Render(views.IngameViewController.gameObject,"polished-boss.png",1080,1920);
             CandyBreakoutValidation.Check(roundMusic.clip!=null && roundMusic.clip.name=="BigCandy","boss uses gentle dedicated loop");
+            int retainedCoins=ServicesManager.Instance.CoinManager.TotalCoins;
+            GameDebugService.FinishLevel(false);
+            yield return new WaitForSecondsRealtime(.5f);
+            CandyBreakoutValidation.Check(views.ActiveViewType==ViewType.ENDGAME_VIEW && ServicesManager.Instance.CoinManager.TotalCoins==retainedCoins, "failure reaches result without spending wallet coins");
+            Render(views.EndGameViewController.gameObject,"polished-failure.png",1080,1920);
+            views.EndGameViewController.GetComponentsInChildren<Button>().Single(x=>x.name=="Primary").onClick.Invoke();
+            yield return new WaitForSecondsRealtime(2);
+            CandyBreakoutValidation.Check(IngameManager.Instance.CurrentLevel==10 && IngameManager.Instance.IsRoundStarted, "failure retry returns to the same playable round");
             views.IngameViewController.GetComponent<BearPausePanel>().ReturnHome();
+            views.IngameViewController.GetComponent<BearPausePanel>().Resume();
             yield return new WaitForSecondsRealtime(2);
             CandyBreakoutValidation.Check(views.ActiveViewType == ViewType.HOME_VIEW && IngameManager.Instance == null && Time.timeScale == 1, "return home restores state");
             CandyBreakoutValidation.Check(originalScaler.referenceResolution==originalReference && originalScaler.matchWidthOrHeight==originalMatch,"other views retain their original scaler");
@@ -444,24 +482,6 @@ namespace ClawbearGames.EditorTools
             bool allocationCounter=CandyBreakoutValidation.HasAllocationCounter();
             if(allocationCounter)CandyBreakoutValidation.Check(layoutBytes==0,"stable layout refresh has no managed allocations");
             DestroyImmediate(parent.gameObject);
-
-            var iapObject=new GameObject("IAPTaskProbe");var iap=iapObject.AddComponent<IAPManager>();
-            var pending=new System.Threading.Tasks.TaskCompletionSource<bool>();
-            PrivateField(iap,"initializationTask").SetValue(iap,pending.Task);
-            CandyBreakoutValidation.Check(ReferenceEquals(iap.InitializePurchasing(),pending.Task) && ReferenceEquals(iap.InitializePurchasing(),pending.Task),"concurrent IAP initialization shares one task");
-            DestroyImmediate(iapObject);pending.SetResult(true);
-
-            var adObject=new GameObject("AdRetryProbe");var ad=adObject.AddComponent<UnityAdController>();
-            string placement=(string)typeof(UnityAdController).GetProperty("InterstitialID",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).GetValue(ad);
-            ad.OnUnityAdsFailedToLoad(placement,(UnityEngine.Advertisements.UnityAdsLoadError)0,"validation");
-            object retry=PrivateField(ad,"interstitialRetry").GetValue(ad);
-            ad.OnUnityAdsFailedToLoad(placement,(UnityEngine.Advertisements.UnityAdsLoadError)0,"validation");
-            CandyBreakoutValidation.Check(retry!=null && ReferenceEquals(retry,PrivateField(ad,"interstitialRetry").GetValue(ad)),"ad load failures coalesce retries");
-            ad.OnUnityAdsAdLoaded(placement);
-            CandyBreakoutValidation.Check(PrivateField(ad,"interstitialRetry").GetValue(ad)==null,"successful load cancels pending retry");
-            adObject.SetActive(false);
-            CandyBreakoutValidation.Check(PrivateField(ad,"rewardedRetry").GetValue(ad)==null,"disabled ad owner releases retries");
-            DestroyImmediate(adObject);
 
             var leaderboardObject=new GameObject("LeaderboardParseProbe");var leaderboard=leaderboardObject.AddComponent<LeaderboardManager>();
             var parse=typeof(LeaderboardManager).GetMethod("ParseLeaderboard",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic);
@@ -554,7 +574,7 @@ namespace ClawbearGames.EditorTools
                 CandyBreakoutValidation.Check(PrivateField(sound,"musicFade").GetValue(sound)==null,"disabled sound owner cancels transition coroutine");
             }
             finally { PlayerDataHandler.UpdateMusicValue(originalMusic);DestroyImmediate(audioObject);DestroyImmediate(clipA);DestroyImmediate(clipB); }
-            Debug.Log("LIFECYCLE: singleton ownership, stable layout"+(allocationCounter?" "+layoutBytes+" B":" (allocation counter unavailable)")+", IAP task coalescing, ad retry cleanup, leaderboard parsing, daily rollover, quieter music mix, collision duck/recovery, mute, interrupted music and pause/resume PASS");
+            Debug.Log("LIFECYCLE: singleton ownership, stable layout"+(allocationCounter?" "+layoutBytes+" B":" (allocation counter unavailable)")+", free coin shop, leaderboard parsing, daily rollover, quieter music mix, collision duck/recovery, mute, interrupted music and pause/resume PASS");
         }
         private static void TouchAt(Touchscreen device, Vector2 point, UnityEngine.InputSystem.TouchPhase phase)
             => InputSystem.QueueStateEvent(device,new TouchState { touchId=1,position=point,phase=phase });
@@ -675,7 +695,7 @@ namespace ClawbearGames.EditorTools
             Vector2 a=graphic.ToLocalPoint(new Vector2(100,100)),x=graphic.ToLocalPoint(new Vector2(200,100)),y=graphic.ToLocalPoint(new Vector2(100,200));
             CandyBreakoutValidation.Check(Mathf.Abs(Vector2.Distance(a,x)-Vector2.Distance(a,y))<.001f,"uniform field scale preserves collision angles");
         }
-        private static void Render(GameObject view, string name, int width, int height)
+        internal static void Render(GameObject view, string name, int width, int height)
         {
             var renderRoot = new GameObject("PreviewCanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
             var cameraObject = new GameObject("PreviewCamera", typeof(Camera));
@@ -691,8 +711,13 @@ namespace ClawbearGames.EditorTools
             scaler.referenceResolution = new Vector2(1080,1920); scaler.matchWidthOrHeight = 0;
             Transform original = view.transform.parent; int sibling = view.transform.GetSiblingIndex();
             view.transform.SetParent(renderRoot.transform, false);
+            // Still captures show the settled presentation, not the first transparent fade frame.
+            foreach(var fade in view.GetComponentsInChildren<BearPanelFade>()) fade.Complete();
+            foreach(var outcome in view.GetComponentsInChildren<BearOutcomePanel>()) outcome.CompletePresentation();
             Canvas.ForceUpdateCanvases();
             foreach (var layout in view.GetComponentsInChildren<BearMenuLayout>(true)) layout.Refresh();
+            foreach (var header in view.GetComponentsInChildren<BearMenuHeader>(true))
+                header.Refresh(new Rect(0,0,width,height), new Vector2(width,height));
             var polished = view.GetComponent<CandyBreakoutView>();
             if (polished != null) polished.RefreshLayout(true);
             Canvas.ForceUpdateCanvases();

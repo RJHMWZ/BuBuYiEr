@@ -55,6 +55,7 @@ namespace ClawbearGames
         /// <param name="level"></param>
         public void ShowConfirmPanel(int level)
         {
+            if(level<1 || level>PlayerDataHandler.GetCurrentLevel() || Resources.Load<LevelData>("Levels/Level_"+level)==null)return;
             targetLevel = level;
             if (bearMap != null)
             {
@@ -86,6 +87,7 @@ namespace ClawbearGames
 
         public void OnClickStartButton()
         {
+            if(targetLevel<1 || targetLevel>PlayerDataHandler.GetCurrentLevel() || Resources.Load<LevelData>("Levels/Level_"+targetLevel)==null)return;
             ServicesManager.Instance.SoundManager.PlaySound(ServicesManager.Instance.SoundManager.Button);
             PlayerDataHandler.UpdateTargetLevel(targetLevel);
             LoadScene("Ingame", 0.25f);
