@@ -29,6 +29,7 @@ namespace ClawbearGames
         [HideInInspector] public Image storyPreview;
         [HideInInspector] public GameObject unlockedTravelArt, storyDetailsOverlay;
         [HideInInspector] public GameObject alternateCollection, modal;
+        [HideInInspector] public GameObject messageDialog, coffeeDialog;
         [HideInInspector] public Text alternateTitle, alternateBody, modalTitle, modalBody;
         [HideInInspector] public Image modalPicture;
         [HideInInspector] public BearMenuShape[] collectionTabs;
@@ -36,7 +37,7 @@ namespace ClawbearGames
         [HideInInspector] public RectTransform[] shopProductRows;
         [HideInInspector] public Text shopCategoryHint;
         [HideInInspector] public Text[] storePrices;
-        public const int LayoutVersion = 6;
+        public const int LayoutVersion = 7;
         [HideInInspector] public int layoutVersion;
         [HideInInspector] public BearMenuHeader header;
         [HideInInspector] public RectTransform shopContent;
@@ -157,7 +158,7 @@ namespace ClawbearGames
                 case "language": Message("语言", "当前界面语言：简体中文\n更多语言将在后续版本开放。"); break;
                 case "help": Message("游戏帮助", "点击糖砖赚取本关蜂蜜，买球与升级，清空即通关。\n通关第 3、8、15、24、35 关，依次迎接新伙伴。\n蜂蜜每关重置；金币、解锁与收藏永久保留。\n每颗新星额外奖励 10 金币，重玩也有少量金币。\n小铺的摆件和外观可装备；道具每种每关可用一次。\n图鉴的旅程栏可领取进度与集星奖励。"); break;
                 case "about": Message("关于我们", "BuBuYiEr\n和小熊一起，收藏甜甜的每一天。\n\n版本 " + Application.version); break;
-                case "privacy": OpenLink(art.privacyUrl, "隐私政策", "隐私政策暂未发布。"); break;
+                case "coffee": ShowCoffee(); break;
                 case "support": OpenLink(art.supportUrl, "联系客服", "在线客服暂未开放。"); break;
             }
         }
@@ -401,11 +402,19 @@ namespace ClawbearGames
             if (Uri.TryCreate(url, UriKind.Absolute, out Uri uri) && (uri.Scheme == "https" || uri.Scheme == "http")) Application.OpenURL(url);
             else Message(title, emptyMessage);
         }
+        private void ShowCoffee()
+        {
+            Message("", "");
+            messageDialog.SetActive(false);
+            coffeeDialog.SetActive(true);
+        }
         public void Message(string title, string body, Sprite picture = null)
         {
             if(ServicesManager.Instance!=null)ServicesManager.Instance.SoundManager.PlayCue(GameSoundCue.UiOpen);
             modal.SetActive(true);
             modal.transform.SetAsLastSibling();
+            messageDialog.SetActive(true);
+            coffeeDialog.SetActive(false);
             modalTitle.text = title;
             modalBody.text = body;
             RectTransform bodyRect = modalBody.rectTransform;

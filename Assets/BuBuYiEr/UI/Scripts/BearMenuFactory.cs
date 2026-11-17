@@ -269,14 +269,15 @@ namespace ClawbearGames
                 menu.toggleKnobs[i] = knob;
                 Action(toggle, i == 0 ? "haptic" : "notifications");
             }
-            string[] actions = { "language", "help", "about", "privacy" };
-            string[] names={"语言","帮助","关于我们","隐私政策"};
-            string[] icons={"Setting/IconInternet","Setting/IconAbout","Setting/IconCommunity","Setting/IconSafe"};
+            string[] actions = { "language", "help", "about", "coffee" };
+            string[] names={"语言","帮助","关于我们","打赏咖啡"};
+            string[] icons={"Setting/IconInternet","Setting/IconAbout","Setting/IconCommunity",""};
             for (int i = 0; i < actions.Length; i++)
             {
                 RectTransform row=Node(frame,actions[i],76,1014+i*93,788,81);
                 Picture(menu,row,"Panel","Setting/ChoicBg",0,0,788,81).type=Image.Type.Sliced;
-                Picture(menu,row,"Icon",icons[i],57,8,70,65).preserveAspect=true;
+                if(actions[i]=="coffee")CoffeeIcon(row,57,8,70,65);
+                else Picture(menu,row,"Icon",icons[i],57,8,70,65).preserveAspect=true;
                 Text label=Label(menu,row,"Label",names[i],175,0,400,81,43);
                 label.alignment=TextAnchor.MiddleLeft;
                 Picture(menu,row,"Arrow","Setting/IconArrow",711,20,25,42);
@@ -337,6 +338,7 @@ namespace ClawbearGames
             menu.modal = overlay.gameObject;
             overlay.gameObject.AddComponent<BearPanelFade>();
             RectTransform frame = Node(overlay, "SafeDialog", 0, 0, 941, 1672);
+            menu.messageDialog = frame.gameObject;
             frame.gameObject.AddComponent<BearMenuLayout>().designSize = new Vector2(941,1672);
             RectTransform card = Node(frame, "PaperDialog", 80, 400, 781, 860);
             Shape(card, "Paper", 0, 0, 781, 860, 66, Cream, new Color32(255,231,192,255), 6);
@@ -348,6 +350,7 @@ namespace ClawbearGames
             Shape(close, "GoldButton", 0, 0, 340, 84, 42, Gold, new Color32(255,211,49,255), 4);
             Label(menu, close, "Label", "知道啦", 0, 0, 340, 84, 42);
             Action(close, "close-modal");
+            menu.coffeeDialog = CoffeeDialog(menu, overlay);
             overlay.gameObject.SetActive(false);
         }
 
