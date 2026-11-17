@@ -36,7 +36,7 @@ namespace ClawbearGames
         [HideInInspector] public RectTransform[] shopProductRows;
         [HideInInspector] public Text shopCategoryHint;
         [HideInInspector] public Text[] storePrices;
-        public const int LayoutVersion = 5;
+        public const int LayoutVersion = 6;
         [HideInInspector] public int layoutVersion;
         [HideInInspector] public BearMenuHeader header;
         [HideInInspector] public RectTransform shopContent;
@@ -231,7 +231,7 @@ namespace ClawbearGames
                 BearShopItem item = catalog.items[i];
                 int owned = BearCoinShop.Quantity(item.id);
                 bool alreadyOwned = !item.consumable && owned > 0;
-                bool cosmetic=item.effect==BearShopEffect.Decoration || item.effect==BearShopEffect.BallSkin;
+                bool cosmetic=PlayerDataHandler.IsCosmetic(item.effect);
                 bool equipped=cosmetic && PlayerDataHandler.GetEquipment(item.effect)==item.id;
                 bool locked=PlayerDataHandler.GetCurrentLevel()<item.unlockLevel;
                 storePrices[i].text = locked?"第 "+item.unlockLevel+" 关开放":alreadyOwned ? cosmetic?equipped?"卸下":"装备":"已拥有" : item.coinPrice + " 金币";
@@ -374,7 +374,9 @@ namespace ClawbearGames
             if(BearCoinShop.Quantity(item.id)>0 && PlayerDataHandler.ToggleEquipment(item))
             {
                 Refresh();
-                Message(PlayerDataHandler.GetEquipment(item.effect)==item.id?"已装备":"已卸下",item.title+"\n"+(item.effect==BearShopEffect.Decoration?"回到小屋即可看到桌面摆件。":"进入关卡即可看到新的小球外观。"));
+                string location=item.effect==BearShopEffect.Decoration?"回到小屋即可看到桌面摆件。":
+                    item.effect==BearShopEffect.BrickSkin?"进入关卡即可看到新的糖砖外观。":"进入关卡即可看到新的小球外观。";
+                Message(PlayerDataHandler.GetEquipment(item.effect)==item.id?"已装备":"已卸下",item.title+"\n"+location);
                 return;
             }
             BearPurchaseResult result = BearCoinShop.Buy(art.shopCatalog, index);

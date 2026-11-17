@@ -110,16 +110,29 @@ namespace ClawbearGames
             SaveData(data); PlayerPrefs.Save();
             return true;
         }
-        public static string GetEquipment(BearShopEffect effect) => effect == BearShopEffect.Decoration
-            ? ReadData().EquippedDecoration ?? "" : ReadData().EquippedBallSkin ?? "";
+        public static string GetEquipment(BearShopEffect effect)
+        {
+            var data = ReadData();
+            switch (effect)
+            {
+                case BearShopEffect.Decoration: return data.EquippedDecoration ?? "";
+                case BearShopEffect.BallSkin: return data.EquippedBallSkin ?? "";
+                case BearShopEffect.BrickSkin: return data.EquippedBrickSkin ?? "";
+                default: return "";
+            }
+        }
+
+        public static bool IsCosmetic(BearShopEffect effect) => effect == BearShopEffect.Decoration
+            || effect == BearShopEffect.BallSkin || effect == BearShopEffect.BrickSkin;
         public static bool ToggleEquipment(BearShopItem item)
         {
             if (item == null || item.consumable || GetShopQuantity(item.id) <= 0
-                || (item.effect != BearShopEffect.Decoration && item.effect != BearShopEffect.BallSkin)) return false;
+                || !IsCosmetic(item.effect)) return false;
             var data = ReadData();
             string chosen = GetEquipment(item.effect) == item.id ? "" : item.id;
             if (item.effect == BearShopEffect.Decoration) data.EquippedDecoration = chosen;
-            else data.EquippedBallSkin = chosen;
+            else if (item.effect == BearShopEffect.BallSkin) data.EquippedBallSkin = chosen;
+            else data.EquippedBrickSkin = chosen;
             SaveData(data); PlayerPrefs.Save();
             return true;
         }

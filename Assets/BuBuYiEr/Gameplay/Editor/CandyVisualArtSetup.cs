@@ -38,10 +38,10 @@ namespace ClawbearGames.EditorTools
             {
                 switch(item.id)
                 {
-                    case "skin_milk":item.title="奶霜曲奇";item.description="曲奇糖霜与可可碎屑拖尾";break;
-                    case "skin_jelly":item.title="果冻泡泡";item.description="清透果冻与薄荷气泡拖尾";break;
-                    case "skin_sunset":item.title="焦糖流星";item.description="焦糖条纹与双层彗星尾迹";break;
-                    case "skin_starry":item.title="星光棱晶";item.description="棱面星核与闪星拖尾";break;
+                    case "skin_milk":item.title="奶霜曲奇";item.description="曲奇奶霜主题 · 六种球独立配色";break;
+                    case "skin_jelly":item.title="果冻泡泡";item.description="透明果冻主题 · 六色球体与气泡尾迹";break;
+                    case "skin_sunset":item.title="焦糖流星";item.description="流星糖纹主题 · 六色球体与彗星尾迹";break;
+                    case "skin_starry":item.title="星光棱晶";item.description="宝石棱面主题 · 六色晶球与闪星尾迹";break;
                 }
             }
             EditorUtility.SetDirty(catalog);AssetDatabase.SaveAssets();

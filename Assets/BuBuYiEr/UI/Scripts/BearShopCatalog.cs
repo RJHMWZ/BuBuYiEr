@@ -4,7 +4,8 @@ using UnityEngine;
 namespace ClawbearGames
 {
     public enum BearShopCategory { Decoration, Skin, Item }
-    public enum BearShopEffect { None, Decoration, BallSkin, HoneyJar, CandyHammer, SweetWind }
+    // Append new effects to preserve the numeric values in existing catalog assets.
+    public enum BearShopEffect { None, Decoration, BallSkin, HoneyJar, CandyHammer, SweetWind, BrickSkin }
 
     [Serializable]
     public sealed class BearShopItem

@@ -22,6 +22,7 @@ namespace ClawbearGames
         public List<BearInventoryEntry> ShopInventory = new List<BearInventoryEntry>();
         public string EquippedDecoration = string.Empty;
         public string EquippedBallSkin = string.Empty;
+        public string EquippedBrickSkin = string.Empty;
         public List<int> ClaimedJourneyRewards = new List<int>();
         public int SlotCount = 0;
         public int MagnetCount = 0;

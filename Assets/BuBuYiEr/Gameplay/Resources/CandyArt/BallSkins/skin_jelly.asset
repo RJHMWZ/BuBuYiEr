@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c992219831b14482b54009db3559e7cf, type: 3}
+  m_Name: skin_jelly
+  m_EditorClassIdentifier:
+  finish: 2
+  colors:
+  - {r: 0.97254902, g: 0.82352941, b: 0.38823529, a: 1}
+  - {r: 0.96078431, g: 0.46666667, b: 0.60784314, a: 1}
+  - {r: 0.41176471, g: 0.70196078, b: 0.94509804, a: 1}
+  - {r: 0.41176471, g: 0.82745098, b: 0.65490196, a: 1}
+  - {r: 0.77647059, g: 0.56862745, b: 0.43921569, a: 1}
+  - {r: 0.74509804, g: 0.54117647, b: 0.91372549, a: 1}

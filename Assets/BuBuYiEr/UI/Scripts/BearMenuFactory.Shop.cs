@@ -77,8 +77,14 @@ namespace ClawbearGames
                     icon.enabled=false;
                     icon.rectTransform.sizeDelta=new Vector2(214,204);
                     icon.rectTransform.anchoredPosition=new Vector2(14,-8);
-                    var preview=Node(icon.transform,"MaterialPreview",0,0,214,204).gameObject.AddComponent<CandyBallPortrait>();
-                    preview.kind=0;preview.skin=item.id;preview.showTrail=true;preview.raycastTarget=false;
+                    var preview=Node(icon.transform,"ThemePreview",0,0,214,204).gameObject.AddComponent<CandyBallThemePreview>();
+                    preview.skin=item.id;preview.raycastTarget=false;
+                }
+                else if(item.effect==BearShopEffect.BrickSkin)
+                {
+                    icon.enabled=false;
+                    var preview=Node(icon.transform,"BrickPreview",0,0,136,136).gameObject.AddComponent<CandyBrickPortrait>();
+                    preview.skin=item.id;preview.raycastTarget=false;
                 }
                 if(item.effect==BearShopEffect.CandyHammer)
                 {

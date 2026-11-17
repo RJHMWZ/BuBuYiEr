@@ -15,12 +15,8 @@ namespace ClawbearGames
         }
         public static Color SkinPreview(string skin,int kind)
         {
-            Color baseColor = CandyBreakoutGraphic.CandyColors[kind];
-            if (skin == "skin_milk") return Color.Lerp(baseColor, new Color(1,.71f,.38f), .30f);
-            if (skin == "skin_jelly") return Color.Lerp(baseColor, new Color(.16f,.80f,.71f), .55f);
-            if (skin == "skin_sunset") return Color.Lerp(baseColor, new Color(1,.42f,.16f), .65f);
-            if (skin == "skin_starry") return Color.Lerp(baseColor, new Color(.39f,.27f,.76f), .65f);
-            return baseColor;
+            CandyBallSkin theme = CandyBallSkin.Resolve(skin);
+            return theme != null ? theme.ColorFor(kind) : (Color)CandyBreakoutGraphic.CandyColors[Mathf.Clamp(kind,0,5)];
         }
         public static bool HasSkin => !string.IsNullOrEmpty(PlayerDataHandler.GetEquipment(BearShopEffect.BallSkin));
         public static void ApplyHome(BearHomeMenuController menu)

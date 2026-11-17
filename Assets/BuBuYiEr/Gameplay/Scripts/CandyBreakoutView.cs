@@ -382,6 +382,7 @@ namespace ClawbearGames
         private void PositionHealth()
         {
             if(game==null)return;
+            Color numberColor=CandyBrickSkin.Equipped.number;
             for(int i=0;i<game.Board.Bricks.Count;i++)
             {
                 var brick=game.Board.Bricks[i];Rect r=arena.VisualRect(brick.Bounds);
@@ -390,8 +391,8 @@ namespace ClawbearGames
                 RectTransform label=health[i].rectTransform;
                 label.anchoredPosition+=new Vector2(r.width*.5f,-r.height*.5f);
                 label.pivot=new Vector2(.5f,.5f);
-                health[i].color=new Color32(60,33,18,255);
-                health[i].fontSize=brick.Boss?42:Mathf.Clamp(Mathf.RoundToInt(r.height*.88f),30,40);
+                health[i].color=numberColor;
+                health[i].fontSize=brick.Boss?42:Mathf.Clamp(Mathf.RoundToInt(r.height*.76f),26,36);
             }
         }
         private bool Ready=>game!=null&&game.CanInteract&&game.Board!=null&&!game.Board.Complete;

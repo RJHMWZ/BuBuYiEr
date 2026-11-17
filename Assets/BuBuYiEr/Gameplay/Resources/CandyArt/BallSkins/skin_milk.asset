@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c992219831b14482b54009db3559e7cf, type: 3}
+  m_Name: skin_milk
+  m_EditorClassIdentifier:
+  finish: 1
+  colors:
+  - {r: 0.98039216, g: 0.83137255, b: 0.51764706, a: 1}
+  - {r: 0.95294118, g: 0.60392157, b: 0.70196078, a: 1}
+  - {r: 0.58823529, g: 0.74509804, b: 0.93725490, a: 1}
+  - {r: 0.58823529, g: 0.83137255, b: 0.69411765, a: 1}
+  - {r: 0.75686275, g: 0.57254902, b: 0.44313725, a: 1}
+  - {r: 0.79607843, g: 0.64705882, b: 0.90588235, a: 1}

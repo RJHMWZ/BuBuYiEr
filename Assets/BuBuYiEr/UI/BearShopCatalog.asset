@@ -70,7 +70,7 @@ MonoBehaviour:
     unlockLevel: 36
   - id: skin_milk
     title: "\u5976\u971C\u66F2\u5947"
-    description: "\u66F2\u5947\u7CD6\u971C\u4E0E\u53EF\u53EF\u788E\u5C51\u62D6\u5C3E"
+    description: "曲奇奶霜主题 · 六种球独立配色"
     category: 1
     coinPrice: 160
     icon: {fileID: 0}
@@ -81,7 +81,7 @@ MonoBehaviour:
     unlockLevel: 1
   - id: skin_jelly
     title: "\u679C\u51BB\u6CE1\u6CE1"
-    description: "\u6E05\u900F\u679C\u51BB\u4E0E\u8584\u8377\u6C14\u6CE1\u62D6\u5C3E"
+    description: "透明果冻主题 · 六色球体与气泡尾迹"
     category: 1
     coinPrice: 220
     icon: {fileID: 0}
@@ -92,7 +92,7 @@ MonoBehaviour:
     unlockLevel: 9
   - id: skin_sunset
     title: "\u7126\u7CD6\u6D41\u661F"
-    description: "\u7126\u7CD6\u6761\u7EB9\u4E0E\u53CC\u5C42\u5F57\u661F\u5C3E\u8FF9"
+    description: "流星糖纹主题 · 六色球体与彗星尾迹"
     category: 1
     coinPrice: 280
     icon: {fileID: 0}
@@ -103,7 +103,7 @@ MonoBehaviour:
     unlockLevel: 16
   - id: skin_starry
     title: "\u661F\u5149\u68F1\u6676"
-    description: "\u68F1\u9762\u661F\u6838\u4E0E\u95EA\u661F\u62D6\u5C3E"
+    description: "宝石棱面主题 · 六色晶球与闪星尾迹"
     category: 1
     coinPrice: 360
     icon: {fileID: 0}
@@ -112,6 +112,39 @@ MonoBehaviour:
     effect: 2
     artKey: Collect/IconMoon
     unlockLevel: 25
+  - id: brick_mint
+    title: "薄荷云朵糖砖"
+    description: "薄荷奶霜与小云朵 · 全盘统一外观"
+    category: 1
+    coinPrice: 140
+    icon: {fileID: 0}
+    available: 1
+    consumable: 0
+    effect: 6
+    artKey:
+    unlockLevel: 1
+  - id: brick_blueberry
+    title: "蓝莓星糖砖"
+    description: "蓝莓糖霜与小星星 · 全盘统一外观"
+    category: 1
+    coinPrice: 180
+    icon: {fileID: 0}
+    available: 1
+    consumable: 0
+    effect: 6
+    artKey:
+    unlockLevel: 4
+  - id: brick_pudding
+    title: "蜂蜜布丁糖砖"
+    description: "蜂蜜布丁与小花朵 · 全盘统一外观"
+    category: 1
+    coinPrice: 160
+    icon: {fileID: 0}
+    available: 1
+    consumable: 0
+    effect: 6
+    artKey:
+    unlockLevel: 9
   - id: support_honey
     title: "\u8702\u871C\u7F50"
     description: "\u589E\u52A0 120 \u672C\u5173\u8702\u871C \xB7 \u6BCF\u5173\u53EF\u7528
